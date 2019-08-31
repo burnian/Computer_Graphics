@@ -34,6 +34,8 @@
 # Third Party Library
 /glfw-3.3
 
-# Some Logs
-*.ipch
-*.tlog
+# Customs
+/*/.vs
+/*/.vscode
+/*/Debug
+/*/*/Debug
