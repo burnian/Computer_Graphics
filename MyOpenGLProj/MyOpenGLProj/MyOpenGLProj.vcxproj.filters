@@ -24,13 +24,7 @@
     <ClCompile Include="IAlgorithm.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Shader.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="stb_image.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Texture.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,8 +35,28 @@
     <ClInclude Include="stb_image.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Texture.h">
+    <ClInclude Include="Camera.h">
       <Filter>头文件</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\res\shader\fragmentShader.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\lightingShader.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\lightingShader.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\vertexShader.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\objectShader.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\objectShader.vs">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>

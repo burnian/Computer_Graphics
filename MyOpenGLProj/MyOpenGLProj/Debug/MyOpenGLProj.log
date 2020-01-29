@@ -1,1 +1,11 @@
-﻿  MyOpenGLProj.vcxproj -> E:\myRepos\Computer_Graphics\MyOpenGLProj\Debug\MyOpenGLProj.exe
+﻿  HelloGL.cpp
+e:\myrepos\computer_graphics\myopenglproj\myopenglproj\hellogl.cpp(75): warning C4244: “=”: 从“double”转换到“GLfloat”，可能丢失数据
+e:\myrepos\computer_graphics\myopenglproj\myopenglproj\hellogl.cpp(76): warning C4244: “=”: 从“double”转换到“GLfloat”，可能丢失数据
+e:\myrepos\computer_graphics\myopenglproj\myopenglproj\hellogl.cpp(79): warning C4244: “初始化”: 从“double”转换到“GLfloat”，可能丢失数据
+e:\myrepos\computer_graphics\myopenglproj\myopenglproj\hellogl.cpp(80): warning C4244: “初始化”: 从“double”转换到“GLfloat”，可能丢失数据
+e:\myrepos\computer_graphics\myopenglproj\myopenglproj\hellogl.cpp(81): warning C4244: “=”: 从“double”转换到“GLfloat”，可能丢失数据
+e:\myrepos\computer_graphics\myopenglproj\myopenglproj\hellogl.cpp(82): warning C4244: “=”: 从“double”转换到“GLfloat”，可能丢失数据
+e:\myrepos\computer_graphics\myopenglproj\myopenglproj\hellogl.cpp(88): warning C4244: “参数”: 从“double”转换到“GLfloat”，可能丢失数据
+e:\myrepos\computer_graphics\myopenglproj\myopenglproj\hellogl.cpp(111): warning C4244: “参数”: 从“const GLfloat”转换到“int”，可能丢失数据
+e:\myrepos\computer_graphics\myopenglproj\myopenglproj\hellogl.cpp(369): warning C4244: “初始化”: 从“double”转换到“GLfloat”，可能丢失数据
+  MyOpenGLProj.vcxproj -> E:\myRepos\Computer_Graphics\MyOpenGLProj\Debug\MyOpenGLProj.exe

@@ -124,14 +124,20 @@
     <ClCompile Include="..\..\Library\src\glad.c" />
     <ClCompile Include="HelloGL.cpp" />
     <ClCompile Include="IAlgorithm.cpp" />
-    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="stb_image.cpp" />
-    <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="stb_image.h" />
-    <ClInclude Include="Texture.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\res\shader\fragmentShader.fs" />
+    <None Include="..\..\res\shader\lightingShader.fs" />
+    <None Include="..\..\res\shader\lightingShader.vs" />
+    <None Include="..\..\res\shader\objectShader.fs" />
+    <None Include="..\..\res\shader\objectShader.vs" />
+    <None Include="..\..\res\shader\vertexShader.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

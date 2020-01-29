@@ -33,6 +33,7 @@
 
 # Third Party Library
 /glfw-3.3
+/glm
 
 # Customs
 /*/.vs
