@@ -216,7 +216,6 @@ int main() {
 		objectShader.SetMat4("model", glm::mat4(1.0f));
 		objectShader.SetMat4("view", camera.GetViewMatrix());
 		objectShader.SetMat4("projection", projection);
-		objectShader.setVec3("viewPos", camera.position);
 
 		// render the cube
 		glBindVertexArray(cubeVAO);
