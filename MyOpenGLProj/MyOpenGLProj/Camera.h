@@ -85,7 +85,7 @@ public:
 	// Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
 	void ProcessKeyboard(MOVEMENT direction, GLfloat deltaTime) {
 		GLfloat velocity = movementSpeed * deltaTime;
-		GLfloat temp = position.y;
+		//GLfloat temp = position.y;
 		if (direction == FORWARD)
 			position += front * velocity;
 		else if (direction == BACKWARD)
@@ -94,7 +94,7 @@ public:
 			position -= right * velocity;
 		else if (direction == RIGHT)
 			position += right * velocity;
-		position.y = temp;
+		//position.y = temp;
 	}
 
 	// Processes input received from a mouse input system. Expects the offset value in both the x and y direction.

@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="HelloGL.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Library\src\glad.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -25,6 +22,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="stb_image.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="LightingTest.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

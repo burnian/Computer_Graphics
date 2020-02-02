@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 08/30/2019, 17:39
-*@Last Modify: 01/07/2020, 17:39
+*@Last Modify: 01/30/2020, 13:38
 *@Desc: ...
 *********************************************************/
 #include <glad/glad.h> // warning: 请确认是在包含GLFW的头文件之前包含了GLAD的头文件。GLAD的头文件包含了正确的OpenGL头文件（例如GL/gl.h），所以需要在其它依赖于OpenGL的头文件之前包含GLAD。
@@ -90,7 +90,7 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 }
 
 
-int main() {
+int _main() {
 	// 初始化GLFW
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);//opengl 主版本号设置为3
@@ -173,6 +173,7 @@ int main() {
 		1, 2, 3 // 第二个三角形
 	};
 
+	// 一个正方体的所有顶点
 	const GLfloat vertices[] = {
 		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,

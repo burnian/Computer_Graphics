@@ -78,21 +78,33 @@ public:
 	};
 
 	// uniform工具函数
-	void SetBool(const std::string &name, bool value) const {
+	void SetBool(const std::string &name, GLboolean value) const {
 		glUniform1i(glGetUniformLocation(ID, name.c_str()), (GLint)value);
 	};
 
 	void SetInt(const std::string &name, GLint value) const {
-		glUniform1i(glGetUniformLocation(ID, name.c_str()), (GLint)value);
+		glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
 	};
 
 	void SetFloat(const std::string &name, GLfloat value) const {
-		glUniform1f(glGetUniformLocation(ID, name.c_str()), (GLfloat)value);
+		glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
 	};
 
+	void setVec3(const std::string &name, const glm::vec3 &value) const {
+		glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+	}
+
 	void SetVec3(const std::string &name, GLfloat x, GLfloat y, GLfloat z) const {
-		glUniform3f(glGetUniformLocation(ID, name.c_str()), (GLfloat)x, (GLfloat)y, (GLfloat)z);
+		glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
 	};
+
+	void setVec4(const std::string &name, const glm::vec4 &value) const {
+		glUniform4fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+	}
+
+	void setVec4(const std::string &name, GLfloat x, GLfloat y, GLfloat z, GLfloat w) const {
+		glUniform4f(glGetUniformLocation(ID, name.c_str()), x, y, z, w);
+	}
 
 	void SetMat4(const std::string &name, glm::mat4 mat) const {
 		//@param1 transform 这个uniform 变量的位置
