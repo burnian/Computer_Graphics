@@ -135,8 +135,8 @@
     <None Include="..\..\res\shader\fragmentShader.fs" />
     <None Include="..\..\res\shader\lightingShader.fs" />
     <None Include="..\..\res\shader\lightingShader.vs" />
-    <None Include="..\..\res\shader\objectShader.fs" />
-    <None Include="..\..\res\shader\objectShader.vs" />
+    <None Include="..\..\res\shader\Phong.fs" />
+    <None Include="..\..\res\shader\Phong.vs" />
     <None Include="..\..\res\shader\vertexShader.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

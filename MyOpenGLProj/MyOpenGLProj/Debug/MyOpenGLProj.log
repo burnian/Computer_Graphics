@@ -6,5 +6,15 @@ e:\myrepos\computer_graphics\myopenglproj\myopenglproj\lightingtest.cpp(58): war
 e:\myrepos\computer_graphics\myopenglproj\myopenglproj\lightingtest.cpp(59): warning C4244: “=”: 从“double”转换到“GLfloat”，可能丢失数据
 e:\myrepos\computer_graphics\myopenglproj\myopenglproj\lightingtest.cpp(60): warning C4244: “=”: 从“double”转换到“GLfloat”，可能丢失数据
 e:\myrepos\computer_graphics\myopenglproj\myopenglproj\lightingtest.cpp(79): warning C4244: “参数”: 从“const GLfloat”转换到“int”，可能丢失数据
-e:\myrepos\computer_graphics\myopenglproj\myopenglproj\lightingtest.cpp(209): warning C4244: “初始化”: 从“double”转换到“GLfloat”，可能丢失数据
+e:\myrepos\computer_graphics\myopenglproj\myopenglproj\lightingtest.cpp(205): warning C4244: “初始化”: 从“double”转换到“GLfloat”，可能丢失数据
+e:\myrepos\computer_graphics\myopenglproj\myopenglproj\lightingtest.cpp(210): warning C4244: “=”: 从“double”转换到“T”，可能丢失数据
+          with
+          [
+              T=float
+          ]
+e:\myrepos\computer_graphics\myopenglproj\myopenglproj\lightingtest.cpp(211): warning C4244: “=”: 从“double”转换到“T”，可能丢失数据
+          with
+          [
+              T=float
+          ]
   MyOpenGLProj.vcxproj -> E:\myRepos\Computer_Graphics\MyOpenGLProj\Debug\MyOpenGLProj.exe

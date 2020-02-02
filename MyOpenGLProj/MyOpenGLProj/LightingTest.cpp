@@ -176,17 +176,13 @@ int main() {
 	glEnableVertexAttribArray(0);
 
 	// 物体shader
-	Shader objectShader("../../res/shader/objectShader.vs", "../../res/shader/objectShader.fs");
+	Shader objectShader("../../res/shader/Phong.vs", "../../res/shader/Phong.fs");
 	objectShader.Use(); // 必须先激活shader，uniform的赋值才有效
-	objectShader.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
 	objectShader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
-	objectShader.setVec3("lightPos", lightPos);
+	objectShader.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
 	
 	// 灯光shader
-	Shader lightingShader("../../res/shader/lightingShader.vs", "../../res/shader/lightingShader.fs");
-	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::translate(model, lightPos);
-	model = glm::scale(model, glm::vec3(0.2f));
+	Shader lightingShader("../../res/shader/LampShader.vs", "../../res/shader/LampShader.fs");
 
 	// 开启深度测试
 	glEnable(GL_DEPTH_TEST);
@@ -210,18 +206,27 @@ int main() {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
+		double sita = glm::radians(sin(glfwGetTime()) * 180);
+		lightPos.x = cos(sita) * 2.0f;
+		lightPos.z = sin(sita) * 2.0f;
+
 		// cube
 		objectShader.Use();
+		objectShader.setVec3("lightPos", lightPos);
 		objectShader.SetMat4("model", glm::mat4(1.0f));
 		objectShader.SetMat4("view", camera.GetViewMatrix());
 		objectShader.SetMat4("projection", projection);
+		objectShader.setVec3("viewPos", camera.position);
 
 		// render the cube
 		glBindVertexArray(cubeVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		// also draw the lamp
+		// lamp
 		lightingShader.Use();
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, lightPos);
+		model = glm::scale(model, glm::vec3(0.2f));
 		lightingShader.SetMat4("model", model);
 		lightingShader.SetMat4("view", camera.GetViewMatrix());
 		lightingShader.SetMat4("projection", projection);

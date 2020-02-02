@@ -52,10 +52,10 @@
     <None Include="..\..\res\shader\vertexShader.vs">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="..\..\res\shader\objectShader.fs">
+    <None Include="..\..\res\shader\Phong.vs">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="..\..\res\shader\objectShader.vs">
+    <None Include="..\..\res\shader\Phong.fs">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>
