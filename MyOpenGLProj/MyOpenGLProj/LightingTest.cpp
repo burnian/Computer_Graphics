@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 01/30/2020, 13:39
-*@Last Modify: 02/14/2020, 16:12
+*@Last Modify: 02/14/2020, 21:49
 *@Desc: ...
 *********************************************************/
 #include <glad/glad.h> 
@@ -143,6 +143,19 @@ GLint main() {
 		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
 	};
 
+	glm::vec3 cubePositions[] = {
+		glm::vec3(0.0f,  0.0f,  0.0f),
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
+	};
+
 	GLuint VBO;
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -171,30 +184,27 @@ GLint main() {
 	glActiveTexture(GL_TEXTURE1);
 	LoadTexture("../../res/texture/container2_specular.png");
 
-	glActiveTexture(GL_TEXTURE2);
-	LoadTexture("../../res/texture/matrix.jpg");
+	// 自发光贴图
+	//glActiveTexture(GL_TEXTURE2);
+	//LoadTexture("../../res/texture/matrix.jpg");
 
 	// 物体shader
 	Shader objectShader("../../res/shader/Phong.vs", "../../res/shader/Phong.fs");
 	objectShader.Use(); // 必须先激活shader，uniform的赋值才有效
 	objectShader.SetInt("material.diffuse", 0);
 	objectShader.SetInt("material.specular", 1);
-	objectShader.SetInt("material.emission", 2);
-	objectShader.SetVec3("material.specular", 0.50196078f, 0.50196078f, 0.50196078f);
+	//objectShader.SetInt("material.emission", 2); // 自发光贴图
+	objectShader.SetVec3("material.specular", 0.5f, 0.5f, 0.5f);
 	objectShader.SetFloat("material.shininess", 32.0f);
 
-	objectShader.SetVec3("light.ambient", 1.0f, 1.0f, 1.0f);
-	objectShader.SetVec3("light.diffuse", 1.0f, 1.0f, 1.0f); // darken diffuse light a bit
+	//objectShader.SetVec3("light.direction", -0.2f, -1.0f, -0.3f);
+	objectShader.SetVec3("light.ambient", 0.3f, 0.3f, 0.3f);
+	objectShader.SetVec3("light.diffuse", 1.0f, 1.0f, 1.0f);
 	objectShader.SetVec3("light.specular", 1.0f, 1.0f, 1.0f);
-
-	//objectShader.SetVec3("material.ambient", 1.0f, 0.5f, 0.31f);
-	//objectShader.SetVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
-	//objectShader.SetVec3("material.specular", 0.5f, 0.5f, 0.5f);
-	//objectShader.SetFloat("material.shininess", 32.0f);
-
-	//objectShader.SetVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-	//objectShader.SetVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // darken diffuse light a bit
-	//objectShader.SetVec3("light.specular", 1.0f, 1.0f, 1.0f);
+	// 有效光照范围50
+	objectShader.SetFloat("light.constant", 1.0f);
+	objectShader.SetFloat("light.linear", 0.09f);
+	objectShader.SetFloat("light.quadratic", 0.032f);
 
 	// 灯光shader
 	Shader lightingShader("../../res/shader/LampShader.vs", "../../res/shader/LampShader.fs");
@@ -226,13 +236,14 @@ GLint main() {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		double sita = glm::radians(sin(currentFrame) * 180);
-		lightPos.x = cos(sita);
-		lightPos.z = sin(sita);
+		//double sita = glm::radians(sin(currentFrame) * 180);
+		//lightPos.x = cos(sita);
+		//lightPos.z = sin(sita);
 
 		// cube
 		objectShader.Use();
-		objectShader.SetVec3("lightPos", lightPos);
+		objectShader.SetVec3("light.position", lightPos);
+		objectShader.SetVec3("viewPos", camera.position);
 		objectShader.SetMat4("model", glm::mat4(1.0f));
 		objectShader.SetMat4("view", camera.GetViewMatrix());
 		objectShader.SetMat4("projection", projection);
@@ -244,12 +255,15 @@ GLint main() {
 		//glm::vec3 diffuseColor = lightColor * glm::vec3(0.9f);
 		//glm::vec3 ambientColor = diffuseColor * glm::vec3(0.7f);
 
-		//objectShader.SetVec3("light.ambient", ambientColor);
-		//objectShader.SetVec3("light.diffuse", diffuseColor);
-
 		// render the cube
 		glBindVertexArray(cubeVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		for (int i = 0; i < 10; i++) {
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, cubePositions[i]);
+			model = glm::rotate(model, glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
+			objectShader.SetMat4("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 
 		// lamp
 		lightingShader.Use();
