@@ -197,19 +197,18 @@ GLint main() {
 	objectShader.SetVec3("material.specular", 0.5f, 0.5f, 0.5f);
 	objectShader.SetFloat("material.shininess", 32.0f);
 
-	//objectShader.SetVec3("light.direction", -0.2f, -1.0f, -0.3f);
-	objectShader.SetVec3("light.ambient", 0.3f, 0.3f, 0.3f);
+	objectShader.SetVec3("light.ambient", 0.1f, 0.1f, 0.1f);
 	objectShader.SetVec3("light.diffuse", 1.0f, 1.0f, 1.0f);
 	objectShader.SetVec3("light.specular", 1.0f, 1.0f, 1.0f);
-	// 有效光照范围50
+	// 有效光照衰减范围50
 	objectShader.SetFloat("light.constant", 1.0f);
 	objectShader.SetFloat("light.linear", 0.09f);
 	objectShader.SetFloat("light.quadratic", 0.032f);
 
 	// 灯光shader
-	Shader lightingShader("../../res/shader/LampShader.vs", "../../res/shader/LampShader.fs");
-	lightingShader.Use();
-	lightingShader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
+	//Shader lightingShader("../../res/shader/LampShader.vs", "../../res/shader/LampShader.fs");
+	//lightingShader.Use();
+	//lightingShader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
 
 	// 开启深度测试
 	glEnable(GL_DEPTH_TEST);
@@ -242,11 +241,16 @@ GLint main() {
 
 		// cube
 		objectShader.Use();
-		objectShader.SetVec3("light.position", lightPos);
 		objectShader.SetVec3("viewPos", camera.position);
 		objectShader.SetMat4("model", glm::mat4(1.0f));
 		objectShader.SetMat4("view", camera.GetViewMatrix());
 		objectShader.SetMat4("projection", projection);
+
+		// 探照灯
+		objectShader.SetVec3("light.position", camera.position);
+		objectShader.SetVec3("light.direction", camera.front);
+		objectShader.SetFloat("light.innerEdge", glm::cos(glm::radians(12.5f)));
+		objectShader.SetFloat("light.outerEdge", glm::cos(glm::radians(17.5f)));
 
 		//glm::vec3 lightColor;
 		//lightColor.x = fmax(sin(currentFrame * 2.0f), 0.0f);
@@ -265,18 +269,18 @@ GLint main() {
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
-		// lamp
-		lightingShader.Use();
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, lightPos);
-		model = glm::scale(model, glm::vec3(0.2f));
-		lightingShader.SetMat4("model", model);
-		lightingShader.SetMat4("view", camera.GetViewMatrix());
-		lightingShader.SetMat4("projection", projection);
+		//// lamp
+		//lightingShader.Use();
+		//glm::mat4 model = glm::mat4(1.0f);
+		//model = glm::translate(model, lightPos);
+		//model = glm::scale(model, glm::vec3(0.2f));
+		//lightingShader.SetMat4("model", model);
+		//lightingShader.SetMat4("view", camera.GetViewMatrix());
+		//lightingShader.SetMat4("projection", projection);
 
-		// render the lamp
-		glBindVertexArray(lightVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		//// render the lamp
+		//glBindVertexArray(lightVAO);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		// 交换缓冲，检查并调用事件
 		glfwSwapBuffers(window);

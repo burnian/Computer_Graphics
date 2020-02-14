@@ -8,6 +8,9 @@ struct Material {
 
 struct Light {
     vec3 position;
+    vec3 direction;
+	float innerEdge; // cosine
+	float outerEdge; // cosine
 
     vec3 ambient;
     vec3 diffuse;
@@ -31,23 +34,37 @@ uniform Light light;
 void main() {
 	// 环境光
     vec3 ambient = light.ambient * texture(material.diffuse, TexCoords).rgb;
-	// 漫反射 与观察者位置无关
-	vec3 norm = normalize(Normal);
-	vec3 towardLight = normalize(light.position - FragPos);
-	float diffuseStrength = max(dot(towardLight, norm), 0.0); // 光源角参数
-	vec3 diffuse = light.diffuse * diffuseStrength * texture(material.diffuse, TexCoords).rgb;
-	// 镜面反射 与观察者位置相关，这里使用view space进行计算
-	vec3 towardView = normalize(viewPos - FragPos);
-	vec3 reflectDir = reflect(-towardLight, norm);
-	float temp = pow(max(dot(towardView, reflectDir), 0.0), material.shininess); // 观察角参数
-	vec3 specular = light.specular * temp * texture(material.specular, TexCoords).rgb;
 	// 自发光
 	//vec3 emission = texture(material.emission, TexCoords).rgb;
-	// 衰减
-	float d = length(light.position - FragPos);
-	float attenuation = 1.0 / (light.constant + light.linear * d + light.quadratic * d * d);
+	// 聚光灯
+	vec3 spotColor = vec3(0.0);
+	vec3 towardLight = normalize(light.position - FragPos);
+	float theta = dot(towardLight, normalize(-light.direction)); // 光线和聚光灯方向夹角
+	if(theta > light.outerEdge) { // 亮部
+		// 漫反射 与观察者位置无关
+		vec3 norm = normalize(Normal);
+		float diffuseStrength = max(dot(towardLight, norm), 0.0); // 光源角参数
+		vec3 diffuse = light.diffuse * diffuseStrength * texture(material.diffuse, TexCoords).rgb;
+		// 镜面反射 与观察者位置相关，这里使用view space进行计算
+		vec3 towardView = normalize(viewPos - FragPos);
+		vec3 reflectDir = reflect(-towardLight, norm);
+		float temp = pow(max(dot(towardView, reflectDir), 0.0), material.shininess); // 观察角参数
+		vec3 specular = light.specular * temp * texture(material.specular, TexCoords).rgb;
+		// 距离衰减
+		float d = length(light.position - FragPos);
+		float attenuation = 1.0 / (light.constant + light.linear * d + light.quadratic * d * d);
 
-	FragColor = vec4((ambient + diffuse + specular) * attenuation, 1.0);
+		if(theta < light.innerEdge){
+			// 边缘衰减 非线性，cosine
+			float epsilon = light.innerEdge - light.outerEdge;
+			float intensity = clamp((theta - light.outerEdge) / epsilon, 0.0, 1.0);    
+			diffuse *= intensity;
+			specular *= intensity;
+		}
+		spotColor = (diffuse + specular) * attenuation;
+	}
+
+	FragColor = vec4(ambient + spotColor, 1.0);
 }
 
 /*
