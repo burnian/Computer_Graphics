@@ -6,14 +6,16 @@
 *********************************************************/
 #include <glad/glad.h> // warning: 请确认是在包含GLFW的头文件之前包含了GLAD的头文件。GLAD的头文件包含了正确的OpenGL头文件（例如GL/gl.h），所以需要在其它依赖于OpenGL的头文件之前包含GLAD。
 #include <GLFW/glfw3.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <iostream>
+
 #include "stb_image.h" // 一个流行的图片加载库
 #include "Shader.h"
 #include "Camera.h"
 
+#include <iostream>
 
 // 全局设置
 const GLfloat SCR_WIDTH = 800.0f;

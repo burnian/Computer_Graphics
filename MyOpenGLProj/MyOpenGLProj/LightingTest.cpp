@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 01/30/2020, 13:39
-*@Last Modify: 01/30/2020, 13:39
+*@Last Modify: 02/14/2020, 16:12
 *@Desc: ...
 *********************************************************/
 #include <glad/glad.h> 
@@ -11,6 +11,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "utils.h"
 #include "Shader.h"
 #include "Camera.h"
 
@@ -48,7 +49,7 @@ void ProcessInput(GLFWwindow* window) {
 // 鼠标操作参数
 GLfloat lastX = 400, lastY = 300;
 GLboolean isFirstMouse = true;
-void MouseCallback(GLFWwindow* window, double xpos, double ypos) {
+void MouseCallback(GLFWwindow* window, GLdouble xpos, GLdouble ypos) {
 	if (isFirstMouse) { // initially set to true
 		lastX = xpos;
 		lastY = ypos;
@@ -63,7 +64,7 @@ void MouseCallback(GLFWwindow* window, double xpos, double ypos) {
 }
 
 
-int main() {
+GLint main() {
 	// 初始化GLFW
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);//opengl 主版本号设置为3
@@ -92,69 +93,55 @@ int main() {
 	}
 
 	// 窗口大小改变回调
-	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* win, int w, int h) {
+	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* win, GLint w, GLint h) {
 		glViewport(0, 0, w, h);
 	});
 
-	// 绑定
+	// 加载模型顶点
 	const GLfloat vertices[] = {
-		// position			  // normal
-		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		// positions          // normals           // texture coords
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
 
-		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
 
-		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
 
-		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-		 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
 	};
-
-	glm::vec3 cubePos[] = {
-		glm::vec3(0.0f,  0.0f,  0.0f),
-		glm::vec3(2.0f,  5.0f, -15.0f),
-		glm::vec3(-1.5f, -2.2f, -2.5f),
-		glm::vec3(-3.8f, -2.0f, -12.3f),
-		glm::vec3(2.4f, -0.4f, -3.5f),
-		glm::vec3(-1.7f,  3.0f, -7.5f),
-		glm::vec3(1.3f, -2.0f, -2.5f),
-		glm::vec3(1.5f,  2.0f, -2.5f),
-		glm::vec3(1.5f,  0.2f, -1.5f),
-		glm::vec3(-1.3f,  1.0f, -1.5f)
-	};
-
 
 	GLuint VBO;
 	glGenBuffers(1, &VBO);
@@ -164,28 +151,61 @@ int main() {
 	GLuint cubeVAO;
 	glGenVertexArrays(1, &cubeVAO);
 	glBindVertexArray(cubeVAO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
 
 	GLuint lightVAO;
 	glGenVertexArrays(1, &lightVAO);
 	glBindVertexArray(lightVAO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
+
+	// 加载纹理贴图
+	glActiveTexture(GL_TEXTURE0);
+	LoadTexture("../../res/texture/container2.png");
+	
+	glActiveTexture(GL_TEXTURE1);
+	LoadTexture("../../res/texture/container2_specular.png");
+
+	glActiveTexture(GL_TEXTURE2);
+	LoadTexture("../../res/texture/matrix.jpg");
 
 	// 物体shader
 	Shader objectShader("../../res/shader/Phong.vs", "../../res/shader/Phong.fs");
 	objectShader.Use(); // 必须先激活shader，uniform的赋值才有效
-	objectShader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
-	objectShader.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
-	
+	objectShader.SetInt("material.diffuse", 0);
+	objectShader.SetInt("material.specular", 1);
+	objectShader.SetInt("material.emission", 2);
+	objectShader.SetVec3("material.specular", 0.50196078f, 0.50196078f, 0.50196078f);
+	objectShader.SetFloat("material.shininess", 32.0f);
+
+	objectShader.SetVec3("light.ambient", 1.0f, 1.0f, 1.0f);
+	objectShader.SetVec3("light.diffuse", 1.0f, 1.0f, 1.0f); // darken diffuse light a bit
+	objectShader.SetVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+	//objectShader.SetVec3("material.ambient", 1.0f, 0.5f, 0.31f);
+	//objectShader.SetVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+	//objectShader.SetVec3("material.specular", 0.5f, 0.5f, 0.5f);
+	//objectShader.SetFloat("material.shininess", 32.0f);
+
+	//objectShader.SetVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+	//objectShader.SetVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // darken diffuse light a bit
+	//objectShader.SetVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
 	// 灯光shader
 	Shader lightingShader("../../res/shader/LampShader.vs", "../../res/shader/LampShader.fs");
+	lightingShader.Use();
+	lightingShader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
 
 	// 开启深度测试
 	glEnable(GL_DEPTH_TEST);
+
+	// 开启线框模式
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	// 鼠标设置
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // 隐藏鼠标
@@ -206,16 +226,26 @@ int main() {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		double sita = glm::radians(sin(glfwGetTime()) * 180);
-		lightPos.x = cos(sita) * 2.0f;
-		lightPos.z = sin(sita) * 2.0f;
+		double sita = glm::radians(sin(currentFrame) * 180);
+		lightPos.x = cos(sita);
+		lightPos.z = sin(sita);
 
 		// cube
 		objectShader.Use();
-		objectShader.setVec3("lightPos", lightPos);
+		objectShader.SetVec3("lightPos", lightPos);
 		objectShader.SetMat4("model", glm::mat4(1.0f));
 		objectShader.SetMat4("view", camera.GetViewMatrix());
 		objectShader.SetMat4("projection", projection);
+
+		//glm::vec3 lightColor;
+		//lightColor.x = fmax(sin(currentFrame * 2.0f), 0.0f);
+		//lightColor.y = fmax(sin(currentFrame * 0.7f), 0.0f);
+		//lightColor.z = fmax(sin(currentFrame * 1.3f), 0.0f);
+		//glm::vec3 diffuseColor = lightColor * glm::vec3(0.9f);
+		//glm::vec3 ambientColor = diffuseColor * glm::vec3(0.7f);
+
+		//objectShader.SetVec3("light.ambient", ambientColor);
+		//objectShader.SetVec3("light.diffuse", diffuseColor);
 
 		// render the cube
 		glBindVertexArray(cubeVAO);
