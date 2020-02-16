@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 01/30/2020, 13:39
-*@Last Modify: 02/14/2020, 21:49
+*@Last Modify: 02/16/2020, 11:11
 *@Desc: ...
 *********************************************************/
 #include <glad/glad.h> 
@@ -156,6 +156,13 @@ GLint main() {
 		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
+	glm::vec3 pointLightPositions[] = {
+		glm::vec3(0.7f,  0.2f,  2.0f),
+		glm::vec3(2.3f, -3.3f, -4.0f),
+		glm::vec3(-4.0f,  2.0f, -12.0f),
+		glm::vec3(0.0f,  0.0f, -3.0f)
+	};
+
 	GLuint VBO;
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -194,21 +201,36 @@ GLint main() {
 	objectShader.SetInt("material.diffuse", 0);
 	objectShader.SetInt("material.specular", 1);
 	//objectShader.SetInt("material.emission", 2); // 自发光贴图
-	objectShader.SetVec3("material.specular", 0.5f, 0.5f, 0.5f);
 	objectShader.SetFloat("material.shininess", 32.0f);
-
-	objectShader.SetVec3("light.ambient", 0.1f, 0.1f, 0.1f);
-	objectShader.SetVec3("light.diffuse", 1.0f, 1.0f, 1.0f);
-	objectShader.SetVec3("light.specular", 1.0f, 1.0f, 1.0f);
-	// 有效光照衰减范围50
-	objectShader.SetFloat("light.constant", 1.0f);
-	objectShader.SetFloat("light.linear", 0.09f);
-	objectShader.SetFloat("light.quadratic", 0.032f);
+	// 平行光
+	objectShader.SetVec3("dirLight.direction", 1.0f, 1.0f, 0.0f);
+	objectShader.SetVec3("dirLight.ambient", 0.1f, 0.1f, 0.1f);
+	objectShader.SetVec3("dirLight.diffuse", 1.0f, 1.0f, 1.0f);
+	objectShader.SetVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
+	// 点光源
+	for (int i = 0; i < 4; i++) {
+		objectShader.SetVec3("pointLights[" + std::to_string(i) + "].position", pointLightPositions[i]);
+		objectShader.SetVec3("pointLights[" + std::to_string(i) + "].ambient", 0.05f, 0.05f, 0.05f);
+		objectShader.SetVec3("pointLights[" + std::to_string(i) + "].diffuse", 0.8f, 0.8f, 0.8f);
+		objectShader.SetVec3("pointLights[" + std::to_string(i) + "].specular", 1.0f, 1.0f, 1.0f);
+		objectShader.SetFloat("pointLights[" + std::to_string(i) + "].constant", 1.0f); // 有效光照衰减范围50
+		objectShader.SetFloat("pointLights[" + std::to_string(i) + "].linear", 0.09f);
+		objectShader.SetFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.032f);
+	}
+	// 聚光灯
+	objectShader.SetFloat("spotLight.innerCos", glm::cos(glm::radians(12.5f)));
+	objectShader.SetFloat("spotLight.outerCos", glm::cos(glm::radians(15.0f)));
+	objectShader.SetVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+	objectShader.SetVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+	objectShader.SetVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+	objectShader.SetFloat("spotLight.constant", 1.0f); // 有效光照衰减范围50
+	objectShader.SetFloat("spotLight.linear", 0.09f);
+	objectShader.SetFloat("spotLight.quadratic", 0.032f);
 
 	// 灯光shader
-	//Shader lightingShader("../../res/shader/LampShader.vs", "../../res/shader/LampShader.fs");
-	//lightingShader.Use();
-	//lightingShader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
+	Shader lightingShader("../../res/shader/LampShader.vs", "../../res/shader/LampShader.fs");
+	lightingShader.Use();
+	lightingShader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
 
 	// 开启深度测试
 	glEnable(GL_DEPTH_TEST);
@@ -246,11 +268,9 @@ GLint main() {
 		objectShader.SetMat4("view", camera.GetViewMatrix());
 		objectShader.SetMat4("projection", projection);
 
-		// 探照灯
-		objectShader.SetVec3("light.position", camera.position);
-		objectShader.SetVec3("light.direction", camera.front);
-		objectShader.SetFloat("light.innerEdge", glm::cos(glm::radians(12.5f)));
-		objectShader.SetFloat("light.outerEdge", glm::cos(glm::radians(17.5f)));
+		// 聚光灯
+		objectShader.SetVec3("spotLight.position", camera.position);
+		objectShader.SetVec3("spotLight.direction", camera.front);
 
 		//glm::vec3 lightColor;
 		//lightColor.x = fmax(sin(currentFrame * 2.0f), 0.0f);
@@ -269,18 +289,24 @@ GLint main() {
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
-		//// lamp
-		//lightingShader.Use();
+		// lamp
+		lightingShader.Use();
 		//glm::mat4 model = glm::mat4(1.0f);
 		//model = glm::translate(model, lightPos);
 		//model = glm::scale(model, glm::vec3(0.2f));
 		//lightingShader.SetMat4("model", model);
-		//lightingShader.SetMat4("view", camera.GetViewMatrix());
-		//lightingShader.SetMat4("projection", projection);
+		lightingShader.SetMat4("view", camera.GetViewMatrix());
+		lightingShader.SetMat4("projection", projection);
 
-		//// render the lamp
-		//glBindVertexArray(lightVAO);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
+		// render the lamp
+		glBindVertexArray(lightVAO);
+		for (int i = 0; i < 4; i++) {
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, pointLightPositions[i]);
+			model = glm::scale(model, glm::vec3(0.2f));
+			lightingShader.SetMat4("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 
 		// 交换缓冲，检查并调用事件
 		glfwSwapBuffers(window);
