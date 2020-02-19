@@ -38,6 +38,10 @@
 # Customs
 /*/.vs
 /*/.vscode
+/Debug
 /*/Debug
 /*/*/Debug
+/*/*/*/Debug
+/*/*/Release
 /learnRes
+/assimp-5.0.0
