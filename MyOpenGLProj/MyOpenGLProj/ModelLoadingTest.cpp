@@ -119,6 +119,19 @@ GLint main() {
 
 	// shader
 	Shader modelShader("../../res/shader/ModelLoading.vs", "../../res/shader/ModelLoading.fs");
+	modelShader.Use();
+	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
+	model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
+	modelShader.SetMat4("model", model);
+	//modelShader.SetFloat("spotLight.innerCos", glm::cos(glm::radians(12.5f)));
+	//modelShader.SetFloat("spotLight.outerCos", glm::cos(glm::radians(15.0f)));
+	//modelShader.SetVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+	//modelShader.SetVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+	//modelShader.SetVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+	//modelShader.SetFloat("spotLight.constant", 1.0f); // 有效光照衰减范围50
+	//modelShader.SetFloat("spotLight.linear", 0.09f);
+	//modelShader.SetFloat("spotLight.quadratic", 0.032f);
 
 	// load models
 	Model ourModel("../../res/model/nanosuit/nanosuit.obj");
@@ -138,17 +151,15 @@ GLint main() {
 		lastFrame = currentFrame;
 
 		modelShader.Use();
-		// view/projection transformations
-		glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-		modelShader.SetMat4("projection", projection);
+		//modelShader.SetVec3("viewPos", camera.position);
 		modelShader.SetMat4("view", camera.GetViewMatrix());
+		modelShader.SetMat4("projection", projection);
 
-		// render the loaded model
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
-		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
-		modelShader.SetMat4("model", model);
 		ourModel.Draw(modelShader);
+
+		// 聚光灯
+		modelShader.SetVec3("spotLight.position", camera.position);
+		modelShader.SetVec3("spotLight.direction", camera.front);
 
 		// 交换缓冲，检查并调用事件
 		glfwSwapBuffers(window);

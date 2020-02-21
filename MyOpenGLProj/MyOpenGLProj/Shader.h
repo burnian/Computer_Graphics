@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 08/30/2019, 13:36
-*@Last Modify: 01/28/2020, 13:36
+*@Last Modify: 02/19/2020, 11:49
 *@Desc: 着色器
 *********************************************************/
 #pragma once
@@ -12,9 +12,7 @@
 #include <sstream>
 #include <iostream>
 
-
-class Shader
-{
+class Shader {
 public:
 	Shader(const GLchar* vertexPath, const GLchar* fragmentPath) {
 		// 从文件路径中获取顶点/片段着色器
@@ -25,8 +23,7 @@ public:
 		// 保证ifstream对象可以抛出异常
 		vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 		fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-		try
-		{
+		try {
 			// 打开文件
 			vShaderFile.open(vertexPath);
 			fShaderFile.open(fragmentPath);
@@ -44,12 +41,11 @@ public:
 			//vv = s.c_str();
 			//ff = t.c_str();
 		}
-		catch (std::ifstream::failure e)
-		{
+		catch (std::ifstream::failure e) {
 			std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
 		}
-		const char* vShaderCode = vertexCode.c_str();
-		const char* fShaderCode = fragmentCode.c_str();
+		const GLchar* vShaderCode = vertexCode.c_str();
+		const GLchar* fShaderCode = fragmentCode.c_str();
 		// 顶点着色器
 		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertexShader, 1, &vShaderCode, NULL);// @para2 传递的源码字符串数量
@@ -114,6 +110,8 @@ public:
 		glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
 	};
 
+	GLuint ID;
+
 private:
 	void CheckCompileErrors(GLuint shader, std::string type) {
 		GLint success;
@@ -133,8 +131,5 @@ private:
 			}
 		}
 	};
-
-public:
-	GLuint ID;
 };
 

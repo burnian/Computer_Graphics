@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 02/17/2020, 20:38
-*@Last Modify: 02/18/2020, 17:34
+*@Last Modify: 02/19/2020, 11:48
 *@Desc: model
 *********************************************************/
 #pragma once
@@ -18,8 +18,7 @@
 #include "Mesh.h"
 #include "utils.h"
 
-class Model
-{
+class Model {
 public:
 	Model(std::string const &path, bool gamma = false)
 		: gammaCorrection(gamma)
