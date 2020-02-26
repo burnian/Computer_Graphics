@@ -69,9 +69,38 @@ public:
 
 	~Shader() {};
 
+	// 激活该shader 程序
 	void Use() {
 		glUseProgram(ID);
 	};
+
+	// 打开平行光
+	void SetupDirLight() {
+		Use();
+		SetVec3("dirLight.direction", 1.0f, 1.0f, 0.0f);
+		//SetVec3("dirLight.ambient", 0.1f, 0.1f, 0.1f);
+		SetVec3("dirLight.ambient", 1.0f, 1.0f, 1.0f);
+		SetVec3("dirLight.diffuse", 1.0f, 1.0f, 1.0f);
+		SetVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
+	}
+
+	// 打开聚光灯
+	void TurnOnSpotLight() {
+		Use();
+		SetFloat("spotLight.innerCos", glm::cos(glm::radians(12.5f)));
+		SetFloat("spotLight.outerCos", glm::cos(glm::radians(15.0f)));
+		SetVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+		SetVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+		SetVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+		SetFloat("spotLight.constant", 1.0f); // 有效光照衰减范围50
+		SetFloat("spotLight.linear", 0.09f);
+		SetFloat("spotLight.quadratic", 0.032f);
+	}
+
+	void MoveSpotLight(glm::vec3 position, glm::vec3 front) {
+		SetVec3("spotLight.position", position);
+		SetVec3("spotLight.direction", front);
+	}
 
 	// uniform工具函数
 	void SetBool(const std::string &name, GLboolean value) const {

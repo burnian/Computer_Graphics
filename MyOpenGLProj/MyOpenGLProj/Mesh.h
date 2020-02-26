@@ -35,7 +35,7 @@ public:
 		SetupMesh();
 	};
 
-	void Draw(Shader shader) {
+	void Draw(const Shader &shader) {
 		GLuint diffuseNr = 1;
 		GLuint specularNr = 1;
 		for (GLuint i = 0; i < textures.size(); i++) {

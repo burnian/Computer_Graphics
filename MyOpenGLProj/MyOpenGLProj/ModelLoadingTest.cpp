@@ -113,25 +113,50 @@ GLint main() {
 
 	// 开启深度测试
 	glEnable(GL_DEPTH_TEST);
+	// glDepthMask(GL_FALSE); //这句把 depth buffer 设置为了只读，那些通过测试的点并不能用自己的z值覆盖depth buffer
+	//glDepthFunc(GL_ALWAYS); // always pass the depth test (same effect as glDisable(GL_DEPTH_TEST))
 
 	// 开启线框模式
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+
+	// floor
+	GLfloat planeVertices[] = {
+		// positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
+		 5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+		-5.0f, -0.5f,  5.0f,  0.0f, 0.0f,
+		-5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+
+		 5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+		-5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+		 5.0f, -0.5f, -5.0f,  2.0f, 2.0f
+	};
+
+	// 指定数据区
+	GLuint planeVBO;
+	glGenBuffers(1, &planeVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices, GL_STATIC_DRAW);
+
+	// plane VAO
+	GLuint planeVAO;
+	glGenVertexArrays(1, &planeVAO);
+	glBindVertexArray(planeVAO); // 这里的绑定很关键，会把VAO和VBO联系起来
+	// 指定VAO对数据的解析方式
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+
+	GLuint floorTexture = utils::LoadTexture("../../res/texture/metal.png");
+
 	// shader
+	Shader textureShader("../../res/shader/textureShader.vs", "../../res/shader/textureShader.fs");
 	Shader modelShader("../../res/shader/ModelLoading.vs", "../../res/shader/ModelLoading.fs");
-	modelShader.Use();
-	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
-	model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
-	modelShader.SetMat4("model", model);
-	//modelShader.SetFloat("spotLight.innerCos", glm::cos(glm::radians(12.5f)));
-	//modelShader.SetFloat("spotLight.outerCos", glm::cos(glm::radians(15.0f)));
-	//modelShader.SetVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-	//modelShader.SetVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-	//modelShader.SetVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-	//modelShader.SetFloat("spotLight.constant", 1.0f); // 有效光照衰减范围50
-	//modelShader.SetFloat("spotLight.linear", 0.09f);
-	//modelShader.SetFloat("spotLight.quadratic", 0.032f);
+	// 平行光
+	modelShader.SetupDirLight();
+	// 聚光灯
+	modelShader.TurnOnSpotLight();
 
 	// load models
 	Model ourModel("../../res/model/nanosuit/nanosuit.obj");
@@ -150,21 +175,38 @@ GLint main() {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
+		// 模型
 		modelShader.Use();
-		//modelShader.SetVec3("viewPos", camera.position);
+		modelShader.SetVec3("viewPos", camera.position);
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
+		modelShader.SetMat4("model", model);
 		modelShader.SetMat4("view", camera.GetViewMatrix());
 		modelShader.SetMat4("projection", projection);
-
 		ourModel.Draw(modelShader);
-
 		// 聚光灯
-		modelShader.SetVec3("spotLight.position", camera.position);
-		modelShader.SetVec3("spotLight.direction", camera.front);
+		modelShader.MoveSpotLight(camera.position, camera.front);
+
+		// floor
+		glBindVertexArray(planeVAO);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, floorTexture);
+
+		textureShader.Use();
+		textureShader.SetMat4("view", camera.GetViewMatrix());
+		textureShader.SetMat4("projection", projection);
+		textureShader.SetMat4("model", glm::mat4(1.0f));
+		textureShader.SetInt("texture1", 0);
+
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// 交换缓冲，检查并调用事件
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+	glDeleteVertexArrays(1, &planeVAO);
+	glDeleteBuffers(1, &planeVBO);
 
 	glfwTerminate();
 	return 0;

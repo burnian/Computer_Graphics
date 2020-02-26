@@ -26,7 +26,7 @@ public:
 		LoadModel(path);
 	}
 
-	void Draw(Shader shader) {
+	void Draw(const Shader &shader) {
 		for (GLuint i = 0; i < meshes.size(); i++)
 			meshes[i].Draw(shader);
 	};
