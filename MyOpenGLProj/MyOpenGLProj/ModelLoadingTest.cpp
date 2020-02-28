@@ -111,14 +111,20 @@ GLint main() {
 	glfwSetCursorPosCallback(window, MouseCallback);
 	glfwSetScrollCallback(window, ScrollCallback);
 
+	// 开启线框模式
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	// 开启模板测试
+	glEnable(GL_STENCIL_TEST);
+	//@param1 sfail: action to take if the stencil test fails.
+	//@param2 dpfail: action to take if the stencil test passes, but the depth test fails.
+	//@param3 dppass: action to take if both the stencil and the depth test pass.
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
 	// 开启深度测试
 	glEnable(GL_DEPTH_TEST);
 	// glDepthMask(GL_FALSE); //这句把 depth buffer 设置为了只读，那些通过测试的点并不能用自己的z值覆盖depth buffer
 	//glDepthFunc(GL_ALWAYS); // always pass the depth test (same effect as glDisable(GL_DEPTH_TEST))
-
-	// 开启线框模式
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
 
 	// floor
 	GLfloat planeVertices[] = {
@@ -153,6 +159,7 @@ GLint main() {
 	// shader
 	Shader textureShader("../../res/shader/textureShader.vs", "../../res/shader/textureShader.fs");
 	Shader modelShader("../../res/shader/ModelLoading.vs", "../../res/shader/ModelLoading.fs");
+	Shader singleColorShader("../../res/shader/SingleColor.vs", "../../res/shader/SingleColor.fs");
 	// 平行光
 	modelShader.SetupDirLight();
 	// 聚光灯
@@ -163,43 +170,67 @@ GLint main() {
 
 	// 渲染循环
 	while (!glfwWindowShouldClose(window)) {
-		// 输入
-		ProcessInput(window);
-
-		// 渲染指令
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 		// 帧率校正
 		GLfloat currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		// 模型
-		modelShader.Use();
-		modelShader.SetVec3("viewPos", camera.position);
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f)); // translate it down so it's at the center of the scene
-		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
-		modelShader.SetMat4("model", model);
-		modelShader.SetMat4("view", camera.GetViewMatrix());
-		modelShader.SetMat4("projection", projection);
-		ourModel.Draw(modelShader);
-		// 聚光灯
-		modelShader.MoveSpotLight(camera.position, camera.front);
+		// 输入
+		ProcessInput(window);
+
+		// 渲染指令
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		// floor
+		glStencilMask(0x00); // make sure we don't update the stencil buffer while drawing the floor
 		glBindVertexArray(planeVAO);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, floorTexture);
-
 		textureShader.Use();
 		textureShader.SetMat4("view", camera.GetViewMatrix());
 		textureShader.SetMat4("projection", projection);
 		textureShader.SetMat4("model", glm::mat4(1.0f));
 		textureShader.SetInt("texture1", 0);
-
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		// nanosuit
+		//@param1 func: sets the stencil test function that determines whether a fragment passes or is discarded.
+		//				This test function is applied to the stored stencil value and the glStencilFunc's ref value.
+		//				Possible options are: GL_NEVER, GL_LESS, GL_LEQUAL, GL_GREATER, GL_GEQUAL, GL_EQUAL, GL_NOTEQUAL and GL_ALWAYS.
+		//@param2 ref: specifies the reference value for the stencil test.The stencil buffer's content is compared to this value.
+		//				该值不仅是用来比较的标杆，还能用来覆盖stencil buffer
+		//@param3 mask: specifies a mask that is ANDed with both the reference value and the stored stencil value before the test compares them.Initially set to all 1s.
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		// 所有待写入stencil buffer 的值都要先与该掩码相与，再把结果写入stencil buffer
+		glStencilMask(0xFF); // enable writing to the stencil buffer
+		modelShader.Use();
+		modelShader.SetVec3("viewPos", camera.position);
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::scale(model, glm::vec3(0.2f));	// it's a bit too big for our scene, so scale it down
+		modelShader.SetMat4("model", model);
+		modelShader.SetMat4("view", camera.GetViewMatrix());
+		modelShader.SetMat4("projection", projection);
+		ourModel.Draw(modelShader);
+		// 聚光灯
+		//modelShader.MoveSpotLight(camera.position, camera.front);
+
+		// 绘制选中特效
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00);
+		glDisable(GL_DEPTH_TEST);
+		singleColorShader.Use();
+		GLfloat coverScale = 1.02f;
+		model = glm::scale(model, glm::vec3(coverScale));	// it's a bit too big for our scene, so scale it down
+		model = glm::translate(model, glm::vec3(0.0f, -0.2f, 0.0f));
+		singleColorShader.SetMat4("model", model);
+		singleColorShader.SetMat4("view", camera.GetViewMatrix());
+		singleColorShader.SetMat4("projection", projection);
+		ourModel.Draw(singleColorShader);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
+		glEnable(GL_DEPTH_TEST);
 
 		// 交换缓冲，检查并调用事件
 		glfwSwapBuffers(window);
