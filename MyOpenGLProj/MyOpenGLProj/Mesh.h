@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 02/17/2020, 14:36
-*@Last Modify: 02/19/2020, 11:48
+*@Last Modify: 02/29/2020, 11:45
 *@Desc: Mesh
 *********************************************************/
 #pragma once
@@ -65,18 +65,19 @@ public:
 	std::vector<Texture> textures;
 
 private:
+	// 步骤错了，渲染就会出问题
 	void SetupMesh() {
+		// step 1
 		glGenVertexArrays(1, &VAO);
 		glGenBuffers(1, &VBO);
 		glGenBuffers(1, &EBO);
-
+		// step 2
 		glBindVertexArray(VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-
+		// step 3
 		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), &indices[0], GL_STATIC_DRAW);
-
 		// vertex positions
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);

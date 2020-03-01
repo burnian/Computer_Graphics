@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 02/17/2020, 14:48
-*@Last Modify: 02/18/2020, 22:18
+*@Last Modify: 03/01/2020, 18:46
 *@Desc: 添加第三方库分两步：
 *		1.能让项目找到库文件（项目属性页->VC++目录->包含目录，库目录->分别添加include路径和lib路径）；
 *		2.将.lib文件链接到项目（项目属性页->链接器->输入->附加依赖项->添加对应.lib文件）；
@@ -17,11 +17,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <iostream>
+#include <map>
+
 #include "Shader.h"
 #include "Camera.h"
 #include "Model.h"
 
-#include <iostream>
 
 
 // 全局设置
@@ -123,8 +125,12 @@ GLint main() {
 
 	// 开启深度测试
 	glEnable(GL_DEPTH_TEST);
-	// glDepthMask(GL_FALSE); //这句把 depth buffer 设置为了只读，那些通过测试的点并不能用自己的z值覆盖depth buffer
+	//glDepthMask(GL_FALSE); //这句把 depth buffer 设置为了只读，那些通过测试的点并不能用自己的z值覆盖depth buffer
 	//glDepthFunc(GL_ALWAYS); // always pass the depth test (same effect as glDisable(GL_DEPTH_TEST))
+
+	// 开启混合
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// floor
 	GLfloat planeVertices[] = {
@@ -138,16 +144,15 @@ GLint main() {
 		 5.0f, -0.5f, -5.0f,  2.0f, 2.0f
 	};
 
-	// 指定数据区
-	GLuint planeVBO;
-	glGenBuffers(1, &planeVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices, GL_STATIC_DRAW);
-
-	// plane VAO
-	GLuint planeVAO;
+	GLuint planeVAO, planeVBO;
 	glGenVertexArrays(1, &planeVAO);
+	glGenBuffers(1, &planeVBO);
+
 	glBindVertexArray(planeVAO); // 这里的绑定很关键，会把VAO和VBO联系起来
+	glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+
+	// 指定VBO数据区
+	glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices, GL_STATIC_DRAW);
 	// 指定VAO对数据的解析方式
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)0);
@@ -155,6 +160,54 @@ GLint main() {
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
 
 	GLuint floorTexture = utils::LoadTexture("../../res/texture/metal.png");
+
+	// transparent things
+	std::vector<glm::vec3> windowPos{
+		glm::vec3(-1.5f, 0.0f, -0.48f),
+		glm::vec3(1.5f, 0.0f, 0.51f),
+		glm::vec3(0.0f, 0.0f, 0.7f),
+		glm::vec3(-0.3f, 0.0f, -2.3f),
+		glm::vec3(0.5f, 0.0f, -0.6f)
+	};
+
+	std::vector<glm::vec3> vegetationPos{
+		glm::vec3(-1.5f, 0.0f, -0.48f),
+		glm::vec3(1.5f, 0.0f, 0.51f),
+		glm::vec3(0.0f, 0.0f, 0.7f),
+		glm::vec3(-0.3f, 0.0f, -2.3f),
+		glm::vec3(0.5f, 0.0f, -0.6f)
+	};
+
+	float transVertices[] {
+		// positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
+		0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+		0.0f, -0.5f,  0.0f,  0.0f,  1.0f,
+		1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+
+		0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+		1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+		1.0f,  0.5f,  0.0f,  1.0f,  0.0f
+	};
+
+	GLuint transparentVAO, transparentVBO;
+	glGenVertexArrays(1, &transparentVAO);
+	glGenBuffers(1, &transparentVBO);
+
+	glBindVertexArray(transparentVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, transparentVBO);
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(transVertices), transVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+	glBindVertexArray(0);
+
+	GLuint grassTexture = utils::LoadTexture("../../res/texture/grass.png");
+	// 因为草那张纹理根部有一点白色，所以当纹理拉伸方式为重复整张纹理时，则在草上方会有一条白线，所以就把拉伸方式改为复制纹理边缘
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	GLuint windowTexture = utils::LoadTexture("../../res/texture/window.png");
 
 	// shader
 	Shader textureShader("../../res/shader/textureShader.vs", "../../res/shader/textureShader.fs");
@@ -168,29 +221,34 @@ GLint main() {
 	// load models
 	Model ourModel("../../res/model/nanosuit/nanosuit.obj");
 
-	// 渲染循环
+	glm::mat4 model;
+	// 渲染循环，绘制顺序：1.不透明物体任意顺序；2.透明物体从远到近
 	while (!glfwWindowShouldClose(window)) {
 		// 帧率校正
 		GLfloat currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		// 输入
-		ProcessInput(window);
-
 		// 渲染指令
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+		// 输入
+		ProcessInput(window);
+
+		// 绘制不透明物体
+		// make sure we don't update the stencil buffer while drawing the floor
+		glStencilMask(0x00);
+
 		// floor
-		glStencilMask(0x00); // make sure we don't update the stencil buffer while drawing the floor
-		glBindVertexArray(planeVAO);
 		glActiveTexture(GL_TEXTURE0);
+		glBindVertexArray(planeVAO);
 		glBindTexture(GL_TEXTURE_2D, floorTexture);
 		textureShader.Use();
 		textureShader.SetMat4("view", camera.GetViewMatrix());
 		textureShader.SetMat4("projection", projection);
-		textureShader.SetMat4("model", glm::mat4(1.0f));
+		model = glm::mat4(1.0f);
+		textureShader.SetMat4("model", model);
 		textureShader.SetInt("texture1", 0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -206,7 +264,7 @@ GLint main() {
 		glStencilMask(0xFF); // enable writing to the stencil buffer
 		modelShader.Use();
 		modelShader.SetVec3("viewPos", camera.position);
-		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f)); // translate it down so it's at the center of the scene
 		model = glm::scale(model, glm::vec3(0.2f));	// it's a bit too big for our scene, so scale it down
 		modelShader.SetMat4("model", model);
@@ -214,7 +272,7 @@ GLint main() {
 		modelShader.SetMat4("projection", projection);
 		ourModel.Draw(modelShader);
 		// 聚光灯
-		//modelShader.MoveSpotLight(camera.position, camera.front);
+		modelShader.MoveSpotLight(camera.position, camera.front);
 
 		// 绘制选中特效
 		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
@@ -229,8 +287,39 @@ GLint main() {
 		singleColorShader.SetMat4("projection", projection);
 		ourModel.Draw(singleColorShader);
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilMask(0xFF);
+		glStencilMask(0x00);
 		glEnable(GL_DEPTH_TEST);
+
+		// 透明物体的渲染位于不透明物之后，所有透明物体都要集中起来排序，然后从远到近渲染，之所以要排序是因为深度检测，如果近处的透明物先渲染，
+		// 那么当远处的物体渲染时则会因为无法通过深度检测而被直接discard，于是近处的透明物后面就不会透明显示远处的物体，变得空无一物
+		// 所以我们排序从远到近渲染透明物，透明物的渲染位于不透明物之后也是这个原因。
+		std::map<GLfloat, glm::vec3> sorted;
+		//for (GLuint i = 0; i < vegetationPos.size(); i++) {
+		//	GLfloat distance = glm::length(camera.position - vegetationPos[i]);
+		//	sorted[distance] = vegetationPos[i];
+		//}
+		for (GLuint i = 0; i < windowPos.size(); i++) {
+			GLfloat distance = glm::length(camera.position - windowPos[i]);
+			sorted[distance] = windowPos[i];
+		}
+		// grass
+		glBindVertexArray(transparentVAO);
+		//glBindTexture(GL_TEXTURE_2D, grassTexture);
+		textureShader.Use();
+		//for (std::map<GLfloat, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
+		//	model = glm::mat4(1.0f);
+		//	model = glm::translate(model, it->second);
+		//	textureShader.SetMat4("model", model);
+		//	glDrawArrays(GL_TRIANGLES, 0, 6);
+		//}
+		// window
+		glBindTexture(GL_TEXTURE_2D, windowTexture);
+		for (std::map<GLfloat, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, it->second);
+			textureShader.SetMat4("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
 
 		// 交换缓冲，检查并调用事件
 		glfwSwapBuffers(window);
