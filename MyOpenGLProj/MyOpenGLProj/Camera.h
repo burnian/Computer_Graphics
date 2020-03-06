@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 01/28/2020, 13:36
-*@Last Modify: 01/28/2020, 13:36
+*@Last Modify: 03/07/2020, 00:55
 *@Desc: 相机
 *********************************************************/
 #pragma once
@@ -31,7 +31,7 @@ public:
 	};
 
 	// Constructor with vectors
-	Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f), GLfloat yaw = YAW, GLfloat pitch = PITCH)
+	Camera(glm::vec3 position = glm::vec3(0.0f), glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f), GLfloat yaw = YAW, GLfloat pitch = PITCH)
 		: front(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(SPEED), mouseSensitivity(SENSITIVITY), zoomSensitivity(ZOOM), fov(FOV)
 	{
 		this->position = position;
@@ -125,6 +125,53 @@ public:
 			fov = 45.0f;
 	}
 
+	void SetYaw(const GLfloat yaw) {
+		this->yaw = yaw;
+		UpdateCameraVectors();
+	}
+
+	void SetPitch(const GLfloat pitch) {
+		this->pitch = pitch;
+		UpdateCameraVectors();
+	}
+
+	void SetYawPitch(const GLfloat yaw, const GLfloat pitch) {
+		this->yaw = yaw;
+		this->pitch = pitch;
+		UpdateCameraVectors();
+	}
+
+	void LookBack() {
+		SetYawPitch(yaw + 180.0f, -pitch);
+	}
+
+	//Camera& operator = (const Camera& camera) {
+	//	std::cout << "operator =" << std::endl;
+	//	if (this != &camera) {
+	//		//if (name != NULL)
+	//		//	delete name;
+	//		//this->id = str.id;
+	//		//int len = strlen(str.name);
+	//		//name = new char[len + 1];
+	//		//memcpy(name, str.name, strlen(str.name) + 1);
+	//	}
+	//	return *this;
+	//}
+
+	GLfloat GetYaw() { return yaw; }
+	GLfloat GetPitch() { return pitch; }
+	glm::vec3 GetFront() { return front; }
+	glm::vec3 GetUp() { return up; }
+	glm::vec3 GetRight() { return right; }
+
+	// Camera Attributes
+	glm::vec3 position;
+	glm::vec3 worldUp;
+	// Camera options
+	GLfloat movementSpeed;
+	GLfloat mouseSensitivity;
+	GLfloat zoomSensitivity;
+	GLfloat fov;
 private:
 	// Calculates the front vector from the Camera's (updated) Euler Angles
 	void UpdateCameraVectors() {
@@ -139,19 +186,10 @@ private:
 		up = glm::normalize(glm::cross(right, front));
 	}
 
-public:
-	// Camera Attributes
-	glm::vec3 position;
 	glm::vec3 front;
 	glm::vec3 up;
 	glm::vec3 right;
-	glm::vec3 worldUp;
 	// Euler Angles
 	GLfloat yaw; // 摇头角，以相机pos 为起点的单位向量v 与x 正半轴构成的夹角。v 与x 负半轴重合为-180度，z负半轴为-90度，x正半轴为0度，z正半轴为90度，x负半轴为180度
-	GLfloat pitch; // 俯仰角，以相机pos 为起点的单位向量v 与xz 平面构成的夹角。v指向xz 平面以上为0到90度，以下为-90到0度
-	// Camera options
-	GLfloat movementSpeed;
-	GLfloat mouseSensitivity;
-	GLfloat zoomSensitivity;
-	GLfloat fov;
+	GLfloat pitch; // 俯仰角，以相机pos 为起点的单位向量v 与xz 平面构成的夹角。v指向xz 平面以上为0到90度，以下为-90到0度。不能为+-90度，因为这会导致摇头角可取任意值
 };
