@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 01/28/2020, 13:36
-*@Last Modify: 03/07/2020, 00:55
+*@Last Modify: 03/08/2020, 13:26
 *@Desc: 相机
 *********************************************************/
 #pragma once
@@ -85,7 +85,7 @@ public:
 	// Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
 	void ProcessKeyboard(MOVEMENT direction, GLfloat deltaTime) {
 		GLfloat velocity = movementSpeed * deltaTime;
-		//GLfloat temp = position.y;
+		//GLfloat temp = position.y; // 禁止镜头上下移动
 		if (direction == FORWARD)
 			position += front * velocity;
 		else if (direction == BACKWARD)
@@ -101,14 +101,14 @@ public:
 	void ProcessMouseMovement(GLfloat xoffset, GLfloat yoffset, GLboolean constrainPitch = true) {
 		xoffset *= mouseSensitivity;
 		yoffset *= mouseSensitivity;
-		yaw += xoffset; // 鼠标向右移则cam 逆时针旋转，左移则顺时针旋转
+		yaw = fmod(yaw + xoffset, 360.0f); // 鼠标向右移则cam 逆时针旋转，左移则顺时针旋转，对负数取模等价于对其绝对值取模，再给结果添上负号
 		pitch -= yoffset; // 鼠标向上移则yoffset 减小为负
 
 		// Make sure that when pitch is out of bounds, screen doesn't get flipped
 		if (constrainPitch) {
 			if (pitch > 89.0f)
 				pitch = 89.0f;
-			if (pitch < -89.0f)
+			else if (pitch < -89.0f)
 				pitch = -89.0f;
 		}
 		// Update Front, Right and Up Vectors using the updated Euler angles
@@ -121,22 +121,30 @@ public:
 			fov -= yoffset * zoomSensitivity;
 		if (fov < 1.0f)
 			fov = 1.0f;
-		if (fov > 45.0f)
+		else if (fov > 45.0f)
 			fov = 45.0f;
 	}
 
-	void SetYaw(const GLfloat yaw) {
-		this->yaw = yaw;
+	void SetYaw(GLfloat yaw) {
+		this->yaw = fmod(yaw, 360.0f);
 		UpdateCameraVectors();
 	}
 
-	void SetPitch(const GLfloat pitch) {
+	void SetPitch(GLfloat pitch) {
+		if (pitch > 89.0f)
+			pitch = 89.0f;
+		else if (pitch < -89.0f)
+			pitch = -89.0f;
 		this->pitch = pitch;
 		UpdateCameraVectors();
 	}
 
-	void SetYawPitch(const GLfloat yaw, const GLfloat pitch) {
-		this->yaw = yaw;
+	void SetYawPitch(GLfloat yaw, GLfloat pitch) {
+		this->yaw = fmod(yaw, 360.0f);
+		if (pitch > 89.0f)
+			pitch = 89.0f;
+		else if (pitch < -89.0f)
+			pitch = -89.0f;
 		this->pitch = pitch;
 		UpdateCameraVectors();
 	}
@@ -176,8 +184,8 @@ private:
 	// Calculates the front vector from the Camera's (updated) Euler Angles
 	void UpdateCameraVectors() {
 		glm::vec3 direction; // 表示camera position 到单位球面的交点
-		direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch)); // cos(pitch)表示xz平面直角三角形的斜边长
-		direction.y = sin(glm::radians(pitch)); // 斜边长为1
+		direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch)); // cos(pitch)表示xz平面直角三角形的斜边长，pitch的值域为-90~90
+		direction.y = sin(glm::radians(pitch)); // 斜边长为1，pitch的值域为-90~90
 		direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 		front = glm::normalize(direction);
 		// Also re-calculate the Right and Up vector

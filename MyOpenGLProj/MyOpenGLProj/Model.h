@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 02/17/2020, 20:38
-*@Last Modify: 02/29/2020, 11:44
+*@Last Modify: 03/08/2020, 13:26
 *@Desc: model
 *********************************************************/
 #pragma once
@@ -31,12 +31,10 @@ public:
 			meshes[i].Draw(shader);
 	};
 
-	/*  Model Data  */
 	std::vector<Texture> texturesLoaded;
 	std::vector<Mesh> meshes;
 	std::string directory;
 	bool gammaCorrection;
-
 private:
 	void LoadModel(std::string const &path) {
 		Assimp::Importer importer;

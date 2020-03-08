@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 02/17/2020, 14:48
-*@Last Modify: 03/07/2020, 00:55
+*@Last Modify: 03/08/2020, 13:26
 *@Desc: 添加第三方库分两步：
 *		1.能让项目找到库文件（项目属性页->VC++目录->包含目录，库目录->分别添加include路径和lib路径）；
 *		2.将.lib文件链接到项目（项目属性页->链接器->输入->附加依赖项->添加对应.lib文件）；
@@ -27,8 +27,8 @@
 
 
 // 全局设置
-const GLfloat SCR_WIDTH = 800.0f;
-const GLfloat SCR_HEIGHT = 600.0f;
+const GLfloat SCR_WIDTH = 1280.0f;
+const GLfloat SCR_HEIGHT = 720.0f;
 const GLfloat NEAR_PLANE = 0.1f;
 const GLfloat FAR_PLANE = 100.0f;
 // 帧数校正参数
@@ -336,6 +336,9 @@ GLint main() {
 
 	// shader
 	Shader textureShader("../../res/shader/textureShader.vs", "../../res/shader/textureShader.fs");
+	textureShader.Use();
+	textureShader.SetInt("texture1", 0);
+
 	Shader modelShader("../../res/shader/ModelLoading.vs", "../../res/shader/ModelLoading.fs");
 	Shader singleColorShader("../../res/shader/SingleColor.vs", "../../res/shader/SingleColor.fs");
 	// 平行光
@@ -345,6 +348,76 @@ GLint main() {
 
 	// load models
 	Model ourModel("../../res/model/nanosuit/nanosuit.obj");
+
+	// skybox
+	GLfloat skyboxVertices[] = {
+		// positions          
+		-1.0f,  1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		-1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f
+	};
+
+	GLuint skyboxVAO, skyboxVBO;
+	glGenVertexArrays(1, &skyboxVAO);
+	glGenBuffers(1, &skyboxVBO);
+
+	glBindVertexArray(skyboxVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
+
+	std::vector<std::string> faces {
+		"../../res/texture/skybox/right.jpg",
+		"../../res/texture/skybox/left.jpg",
+		"../../res/texture/skybox/top.jpg",
+		"../../res/texture/skybox/bottom.jpg",
+		"../../res/texture/skybox/front.jpg",
+		"../../res/texture/skybox/back.jpg",
+	};
+	GLuint skyboxTexture = utils::LoadCubemap(faces);
+	Shader skyboxShader("../../res/shader/cubemap.vs", "../../res/shader/cubemap.fs");
+	skyboxShader.Use();
+	skyboxShader.SetInt("skybox", 0);
 
 	glm::mat4 model;
 	// 渲染循环，绘制顺序：1.不透明物体任意顺序；2.透明物体从远到近
@@ -356,7 +429,7 @@ GLint main() {
 
 		ProcessInput(window);
 
-		// render
+		// render main scene
 		glEnable(GL_DEPTH_TEST);
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
@@ -365,7 +438,6 @@ GLint main() {
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // we're not using the stencil buffer now
 
-		// main scene
 		glm::mat4 viewMat = camera.GetViewMatrix();
 		camera.LookBack();
 		glm::mat4 backViewMat = camera.GetViewMatrix();
@@ -375,15 +447,14 @@ GLint main() {
 		glStencilMask(0x00); // make sure we don't update the stencil buffer while drawing the floor
 
 		// floor
-		glActiveTexture(GL_TEXTURE0);
 		glBindVertexArray(planeVAO);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, floorTexture);
 		textureShader.Use();
 		textureShader.SetMat4("view", viewMat);
 		textureShader.SetMat4("projection", projection);
 		model = glm::mat4(1.0f);
 		textureShader.SetMat4("model", model);
-		textureShader.SetInt("texture1", 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		textureShader.SetMat4("view", backViewMat);
@@ -392,6 +463,7 @@ GLint main() {
 
 		// cube
 		glBindVertexArray(cubeVAO);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, containerTexture);
 		textureShader.Use();
 		textureShader.SetMat4("view", viewMat);
@@ -399,7 +471,6 @@ GLint main() {
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(-2.0f, 0.0f, -1.0f));
 		textureShader.SetMat4("model", model);
-		textureShader.SetInt("texture1", 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		textureShader.SetMat4("view", backViewMat);
@@ -453,6 +524,24 @@ GLint main() {
 		glStencilMask(0x00);
 		glEnable(GL_DEPTH_TEST);
 
+		// skybox
+		// 镜头移动的效果本质上是整个场景在相对镜头移动，镜头本身没动，动的是场景，所以当我们把skybox的view变换矩阵中的translation去掉
+		// 之后，skybox和镜头就永远保持相对静止了，再加上禁止skybox写入深度缓冲，就意味着哪怕有模型被skybox遮挡，也依然可以通过depth testing
+		glDepthFunc(GL_LEQUAL);
+		skyboxShader.Use();
+		skyboxShader.SetMat4("view", glm::mat4(glm::mat3(viewMat))); // 去掉平移变换
+		skyboxShader.SetMat4("projection", projection);
+		glBindVertexArray(skyboxVAO);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		skyboxShader.SetMat4("view", glm::mat4(glm::mat3(backViewMat)));
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+		glDepthFunc(GL_LESS);
+
 		// 透明物体的渲染位于不透明物之后，所有透明物体都要集中起来排序，然后从远到近渲染，之所以要排序是因为深度检测，如果近处的透明物先渲染，
 		// 那么当远处的物体渲染时则会因为无法通过深度检测而被直接discard，于是近处的透明物后面就不会透明显示远处的物体，变得空无一物
 		// 所以我们排序从远到近渲染透明物，透明物的渲染位于不透明物之后也是这个原因。
@@ -467,6 +556,7 @@ GLint main() {
 		}
 		// glass
 		glBindVertexArray(transparentVAO);
+		glActiveTexture(GL_TEXTURE0);
 		//glBindTexture(GL_TEXTURE_2D, grassTexture);
 		textureShader.Use();
 		//for (std::map<GLfloat, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
@@ -475,7 +565,7 @@ GLint main() {
 		//	textureShader.SetMat4("model", model);
 		//	glDrawArrays(GL_TRIANGLES, 0, 6);
 		//}
-		// window
+		// red window
 		glBindTexture(GL_TEXTURE_2D, windowTexture);
 		for (std::map<GLfloat, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
 			model = glm::mat4(1.0f);
@@ -489,14 +579,16 @@ GLint main() {
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 
-		// render rear-mirror at the top-center
+		// render rear-mirror at the top-center，一定是在自定义FBO参与的所有绘制完毕之后才执行以下代码
 		// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 		glDisable(GL_DEPTH_TEST);
-		screenShader.Use();
 		glBindVertexArray(quadVAO);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texColorBuffer); // use the color attachment texture as the texture of the quad plane
+		screenShader.Use();
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glEnable(GL_DEPTH_TEST);
 
 		// 交换缓冲，检查并调用事件
 		glfwSwapBuffers(window);
@@ -510,6 +602,8 @@ GLint main() {
 	glDeleteBuffers(1, &planeVBO);
 	glDeleteVertexArrays(1, &transparentVAO);
 	glDeleteBuffers(1, &transparentVBO);
+	glDeleteVertexArrays(1, &skyboxVAO);
+	glDeleteBuffers(1, &skyboxVBO);
 
 	glfwTerminate();
 	return 0;

@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 02/18/2020, 17:32
-*@Last Modify: 02/19/2020, 11:49
+*@Last Modify: 03/08/2020, 13:26
 *@Desc: 通用工具函數
 *********************************************************/
 #pragma once
@@ -52,6 +52,32 @@ namespace utils {
 			std::cout << "Texture failed to load at path: " << path << std::endl;
 		}
 		stbi_image_free(data);
+
+		return textureID;
+	}
+
+	// skybox
+	GLuint LoadCubemap(const std::vector<std::string> faces) {
+		GLuint textureID;
+		glGenTextures(1, &textureID);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+		GLint width, height, nrChannels;
+		for (GLuint i = 0; i < faces.size(); i++) {
+			GLboolean *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+			if (data) {
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			}
+			else {
+				std::cout << "Cubemap tex failed to load at path: " << faces[i] << std::endl;
+			}
+			stbi_image_free(data);
+		}
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 		return textureID;
 	}
