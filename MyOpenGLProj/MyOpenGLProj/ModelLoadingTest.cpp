@@ -343,8 +343,6 @@ GLint main() {
 	Shader singleColorShader("../../res/shader/SingleColor.vs", "../../res/shader/SingleColor.fs");
 	// 平行光
 	modelShader.SetupDirLight();
-	// 聚光灯
-	modelShader.TurnOnSpotLight();
 
 	// load models
 	Model ourModel("../../res/model/nanosuit/nanosuit.obj");
@@ -406,6 +404,72 @@ GLint main() {
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
 
+	Shader skyboxShader("../../res/shader/skybox.vs", "../../res/shader/skybox.fs");
+	skyboxShader.Use();
+	skyboxShader.SetInt("skybox", 0);
+
+	GLfloat mirrorCubeVertices[] = {
+		// position           // normal
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+	};
+
+	GLuint mirrorCubeVAO, mirrorCubeVBO;
+	glGenVertexArrays(1, &mirrorCubeVAO);
+	glGenBuffers(1, &mirrorCubeVBO);
+
+	glBindVertexArray(mirrorCubeVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, mirrorCubeVBO);
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(mirrorCubeVertices), mirrorCubeVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+
+	Shader mirrorCubeShader("../../res/shader/cubemap.vs", "../../res/shader/cubemap.fs");
+	mirrorCubeShader.Use();
+	mirrorCubeShader.SetInt("skybox", 0);
+
 	std::vector<std::string> faces {
 		"../../res/texture/skybox/right.jpg",
 		"../../res/texture/skybox/left.jpg",
@@ -415,9 +479,7 @@ GLint main() {
 		"../../res/texture/skybox/back.jpg",
 	};
 	GLuint skyboxTexture = utils::LoadCubemap(faces);
-	Shader skyboxShader("../../res/shader/cubemap.vs", "../../res/shader/cubemap.fs");
-	skyboxShader.Use();
-	skyboxShader.SetInt("skybox", 0);
+
 
 	glm::mat4 model;
 	// 渲染循环，绘制顺序：1.不透明物体任意顺序；2.透明物体从远到近
@@ -444,7 +506,7 @@ GLint main() {
 		camera.LookBack();
 
 		// 绘制不透明物体
-		glStencilMask(0x00); // make sure we don't update the stencil buffer while drawing the floor
+		//glStencilMask(0x00); // make sure we don't update the stencil buffer while drawing the floor
 
 		// floor
 		glBindVertexArray(planeVAO);
@@ -466,14 +528,30 @@ GLint main() {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, containerTexture);
 		textureShader.Use();
-		textureShader.SetMat4("view", viewMat);
-		textureShader.SetMat4("projection", projection);
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(-2.0f, 0.0f, -1.0f));
 		textureShader.SetMat4("model", model);
+		textureShader.SetMat4("view", viewMat);
+		textureShader.SetMat4("projection", projection);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		textureShader.SetMat4("view", backViewMat);
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		glBindVertexArray(mirrorCubeVAO);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, skyboxTexture);
+		mirrorCubeShader.Use();
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0f));
+		mirrorCubeShader.SetMat4("model", model);
+		mirrorCubeShader.SetMat4("view", viewMat);
+		mirrorCubeShader.SetMat4("projection", projection);
+		mirrorCubeShader.SetVec3("viewPos", camera.position);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		mirrorCubeShader.SetMat4("view", backViewMat);
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -500,29 +578,27 @@ GLint main() {
 		modelShader.SetMat4("view", backViewMat);
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 		ourModel.Draw(modelShader);
-		// 聚光灯
-		modelShader.MoveSpotLight(camera.position, camera.GetFront());
 
 		// 绘制选中特效
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-		glStencilMask(0x00);
-		glDisable(GL_DEPTH_TEST);
-		singleColorShader.Use();
-		GLfloat coverScale = 1.02f;
-		model = glm::scale(model, glm::vec3(coverScale));	// it's a bit too big for our scene, so scale it down
-		model = glm::translate(model, glm::vec3(0.0f, -0.2f, 0.0f));
-		singleColorShader.SetMat4("model", model);
-		singleColorShader.SetMat4("view", viewMat);
-		singleColorShader.SetMat4("projection", projection);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		ourModel.Draw(singleColorShader);
-		singleColorShader.SetMat4("view", backViewMat);
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-		ourModel.Draw(singleColorShader);
+		//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		//glStencilMask(0x00);
+		//glDisable(GL_DEPTH_TEST);
+		//singleColorShader.Use();
+		//GLfloat coverScale = 1.02f;
+		//model = glm::scale(model, glm::vec3(coverScale));	// it's a bit too big for our scene, so scale it down
+		//model = glm::translate(model, glm::vec3(0.0f, -0.2f, 0.0f));
+		//singleColorShader.SetMat4("model", model);
+		//singleColorShader.SetMat4("view", viewMat);
+		//singleColorShader.SetMat4("projection", projection);
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//ourModel.Draw(singleColorShader);
+		//singleColorShader.SetMat4("view", backViewMat);
+		//glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+		//ourModel.Draw(singleColorShader);
 
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilMask(0x00);
-		glEnable(GL_DEPTH_TEST);
+		//glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		//glStencilMask(0x00);
+		//glEnable(GL_DEPTH_TEST);
 
 		// skybox
 		// 镜头移动的效果本质上是整个场景在相对镜头移动，镜头本身没动，动的是场景，所以当我们把skybox的view变换矩阵中的translation去掉
@@ -579,7 +655,8 @@ GLint main() {
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 
-		// render rear-mirror at the top-center，一定是在自定义FBO参与的所有绘制完毕之后才执行以下代码
+		// rear-mirror
+		// 一定是在自定义FBO参与的所有绘制完毕之后才执行以下代码
 		// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 		glDisable(GL_DEPTH_TEST);
 		glBindVertexArray(quadVAO);

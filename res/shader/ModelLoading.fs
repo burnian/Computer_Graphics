@@ -79,11 +79,16 @@ void main() {
 	vec3 result = CalcDirLight(dirLight, norm, towardView);
 	// phase 2: Point lights
 	//for(int i = 0; i < NR_POINT_LIGHTS; i++)
-	//	result += CalcPointLight(pointLights[i], norm, FragPos, towardView);
+	// result += CalcPointLight(pointLights[i], norm, FragPos, towardView);
 	// phase 3: Spot light
-	result += CalcSpotLight(spotLight, norm, FragPos, towardView);
+	// result += CalcSpotLight(spotLight, norm, FragPos, towardView);
 	// phase 4: emission ×Ô·¢¹â
 	//result += texture(material.emission, TexCoords).rgb;
+
+	//float ratio = 1.00 / 1.52;
+    //vec3 I = normalize(Position - cameraPos);
+    //vec3 R = refract(I, normalize(Normal), ratio);
+    //FragColor = vec4(texture(skybox, R).rgb, 1.0);
 
 	FragColor = vec4(result, 1.0);
 }
