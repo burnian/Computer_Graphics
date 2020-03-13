@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 02/17/2020, 14:48
-*@Last Modify: 03/08/2020, 13:26
+*@Last Modify: 03/13/2020, 13:35
 *@Desc: 添加第三方库分两步：
 *		1.能让项目找到库文件（项目属性页->VC++目录->包含目录，库目录->分别添加include路径和lib路径）；
 *		2.将.lib文件链接到项目（项目属性页->链接器->输入->附加依赖项->添加对应.lib文件）；
@@ -18,12 +18,10 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <iostream>
-#include <map>
 
 #include "Shader.h"
 #include "Camera.h"
 #include "Model.h"
-
 
 
 // 全局设置
@@ -124,7 +122,7 @@ GLint main() {
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 	// 开启深度测试
-	//glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 	//glDepthMask(GL_FALSE); //这句把 depth buffer 设置为了只读，那些通过测试的点并不能用自己的z值覆盖depth buffer
 	//glDepthFunc(GL_ALWAYS); // always pass the depth test (same effect as glDisable(GL_DEPTH_TEST))
 
@@ -135,127 +133,6 @@ GLint main() {
 	// 开启面裁剪
 	//glEnable(GL_CULL_FACE);
 	//glCullFace(GL_FRONT);
-
-	// screen quad
-	GLfloat quadVertices[] = {
-		// positions   // texCoords
-		-0.2f, 1.0f,  0.0f, 1.0f,
-		-0.2f, 0.6f,  0.0f, 0.0f,
-		 0.2f, 0.6f,  1.0f, 0.0f,
-
-		-0.2f, 1.0f,  0.0f, 1.0f,
-		 0.2f, 0.6f,  1.0f, 0.0f,
-		 0.2f, 1.0f,  1.0f, 1.0f
-	};
-
-	GLuint quadVAO, quadVBO;
-	glGenVertexArrays(1, &quadVAO);
-	glGenBuffers(1, &quadVBO);
-	glBindVertexArray(quadVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
-
-	// 这个shader 绘制的就是根据我们主场景渲染的一张平面纹理
-	Shader screenShader("../../res/shader/screenShader.vs", "../../res/shader/screenShader.fs");
-	screenShader.Use();
-	screenShader.SetInt("screenTexture", 0);
-
-	// framebuffer configure
-	GLuint FBO;
-	glGenFramebuffers(1, &FBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO);// GL_READ_FRAMEBUFFER, GL_DRAW_FRAMEBUFFER, 当前绑定的这种方式表示前两种操作都是对FBO进行的
-
-	// generate texture
-	GLuint texColorBuffer;
-	glGenTextures(1, &texColorBuffer);
-	glBindTexture(GL_TEXTURE_2D, texColorBuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//@param1 target: the framebuffer type we're targeting (draw, read or both).
-	//@param2 attachment : the type of attachment we're going to attach. Note that the 0 at the end suggests we can attach more than 1 color attachment.
-	//@param3 textarget : the type of the texture you want to attach.
-	//@param4 texture : the actual texture to attach.
-	//@param5 level : the mipmap level. We keep this at 0.
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
-
-	// renderbuffer是专门设计用来附加在framebuffer上的，只可写，处理速度快，不像texture object那样通用，
-	// 所以适合放深度测试和模板测试纹理。对于需要采样的纹理而言，不能放renderbuffer里。
-	// renderbuffer和texture都属于framebuffer的attachment。
-	GLuint RBO;
-	glGenRenderbuffers(1, &RBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO); // attach it
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	// cube
-	GLfloat cubeVertices[] = {
-		// Back face
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // Bottom-left
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
-		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // bottom-right         
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // bottom-left
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
-		// Front face
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // top-right
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // top-right
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // top-left
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
-		// Left face
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-right
-		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-left
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-left
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-left
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-right
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-right
-		// Right face
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-left
-		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right         
-		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-left
-		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left     
-		// Bottom face
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-right
-		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f, // top-left
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-left
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-left
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-right
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-right
-		// Top face
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right     
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
-		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f  // bottom-left        
-	};
-
-	GLuint cubeVAO, cubeVBO;
-	glGenVertexArrays(1, &cubeVAO);
-	glGenBuffers(1, &cubeVBO);
-
-	glBindVertexArray(cubeVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-
-	GLuint containerTexture = utils::LoadTexture("../../res/texture/container2.png");
 
 	// floor
 	GLfloat planeVertices[] = {
@@ -286,62 +163,10 @@ GLint main() {
 
 	GLuint floorTexture = utils::LoadTexture("../../res/texture/metal.png");
 
-	// transparent things
-	std::vector<glm::vec3> windowPos{
-		glm::vec3(-1.5f, 0.0f, -0.48f),
-		glm::vec3(1.5f, 0.0f, 0.51f),
-		glm::vec3(0.0f, 0.0f, 0.7f),
-		glm::vec3(-0.3f, 0.0f, -2.3f),
-		glm::vec3(0.5f, 0.0f, -0.6f)
-	};
-
-	std::vector<glm::vec3> vegetationPos{
-		glm::vec3(-1.5f, 0.0f, -0.48f),
-		glm::vec3(1.5f, 0.0f, 0.51f),
-		glm::vec3(0.0f, 0.0f, 0.7f),
-		glm::vec3(-0.3f, 0.0f, -2.3f),
-		glm::vec3(0.5f, 0.0f, -0.6f)
-	};
-
-	float transVertices[] {
-		// positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
-		0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
-		0.0f, -0.5f,  0.0f,  0.0f,  1.0f,
-		1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
-
-		0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
-		1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
-		1.0f,  0.5f,  0.0f,  1.0f,  0.0f
-	};
-
-	GLuint transparentVAO, transparentVBO;
-	glGenVertexArrays(1, &transparentVAO);
-	glGenBuffers(1, &transparentVBO);
-
-	glBindVertexArray(transparentVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, transparentVBO);
-
-	glBufferData(GL_ARRAY_BUFFER, sizeof(transVertices), transVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-	glBindVertexArray(0);
-
-	GLuint grassTexture = utils::LoadTexture("../../res/texture/grass.png");
-	// 因为草那张纹理根部有一点白色，所以当纹理拉伸方式为重复整张纹理时，则在草上方会有一条白线，所以就把拉伸方式改为复制纹理边缘
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	GLuint windowTexture = utils::LoadTexture("../../res/texture/window.png");
-
 	// shader
 	Shader textureShader("../../res/shader/textureShader.vs", "../../res/shader/textureShader.fs");
-	textureShader.Use();
-	textureShader.SetInt("texture1", 0);
 
-	Shader modelShader("../../res/shader/ModelLoading.vs", "../../res/shader/ModelLoading.fs");
-	Shader singleColorShader("../../res/shader/SingleColor.vs", "../../res/shader/SingleColor.fs");
-	// 平行光
+	Shader modelShader("../../res/shader/metal.vs", "../../res/shader/metal.fs");
 	modelShader.SetupDirLight();
 
 	// load models
@@ -405,70 +230,6 @@ GLint main() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
 
 	Shader skyboxShader("../../res/shader/skybox.vs", "../../res/shader/skybox.fs");
-	skyboxShader.Use();
-	skyboxShader.SetInt("skybox", 0);
-
-	GLfloat mirrorCubeVertices[] = {
-		// position           // normal
-		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-
-		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-
-		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-
-		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-
-		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-
-		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-		 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
-	};
-
-	GLuint mirrorCubeVAO, mirrorCubeVBO;
-	glGenVertexArrays(1, &mirrorCubeVAO);
-	glGenBuffers(1, &mirrorCubeVBO);
-
-	glBindVertexArray(mirrorCubeVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, mirrorCubeVBO);
-
-	glBufferData(GL_ARRAY_BUFFER, sizeof(mirrorCubeVertices), mirrorCubeVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-
-	Shader mirrorCubeShader("../../res/shader/cubemap.vs", "../../res/shader/cubemap.fs");
-	mirrorCubeShader.Use();
-	mirrorCubeShader.SetInt("skybox", 0);
 
 	std::vector<std::string> faces {
 		"../../res/texture/skybox/right.jpg",
@@ -492,20 +253,13 @@ GLint main() {
 		ProcessInput(window);
 
 		// render main scene
-		glEnable(GL_DEPTH_TEST);
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // we're not using the stencil buffer now
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // we're not using the stencil buffer now
 
 		glm::mat4 viewMat = camera.GetViewMatrix();
-		camera.LookBack();
-		glm::mat4 backViewMat = camera.GetViewMatrix();
-		camera.LookBack();
 
-		// 绘制不透明物体
+		// 构造模板的准备工作
 		//glStencilMask(0x00); // make sure we don't update the stencil buffer while drawing the floor
 
 		// floor
@@ -513,47 +267,12 @@ GLint main() {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, floorTexture);
 		textureShader.Use();
+		textureShader.SetInt("texture1", 0);
 		textureShader.SetMat4("view", viewMat);
 		textureShader.SetMat4("projection", projection);
 		model = glm::mat4(1.0f);
 		textureShader.SetMat4("model", model);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		textureShader.SetMat4("view", backViewMat);
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		// cube
-		glBindVertexArray(cubeVAO);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, containerTexture);
-		textureShader.Use();
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(-2.0f, 0.0f, -1.0f));
-		textureShader.SetMat4("model", model);
-		textureShader.SetMat4("view", viewMat);
-		textureShader.SetMat4("projection", projection);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		textureShader.SetMat4("view", backViewMat);
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-
-		glBindVertexArray(mirrorCubeVAO);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, skyboxTexture);
-		mirrorCubeShader.Use();
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0f));
-		mirrorCubeShader.SetMat4("model", model);
-		mirrorCubeShader.SetMat4("view", viewMat);
-		mirrorCubeShader.SetMat4("projection", projection);
-		mirrorCubeShader.SetVec3("viewPos", camera.position);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		mirrorCubeShader.SetMat4("view", backViewMat);
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		// nanosuit
 		//@param1 func: sets the stencil test function that determines whether a fragment passes or is discarded.
@@ -562,22 +281,23 @@ GLint main() {
 		//@param2 ref: specifies the reference value for the stencil test.The stencil buffer's content is compared to this value.
 		//				该值不仅是用来比较的标杆，还能用来覆盖stencil buffer
 		//@param3 mask: specifies a mask that is ANDed with both the reference value and the stored stencil value before the test compares them.Initially set to all 1s.
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		//glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		// 所有待写入stencil buffer 的值都要先与该掩码相与，再把结果写入stencil buffer
-		glStencilMask(0xFF); // enable writing to the stencil buffer
+		//glStencilMask(0xFF); // enable writing to the stencil buffer
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+		modelShader.SetInt("skybox", 0);
+
 		modelShader.Use();
 		modelShader.SetVec3("viewPos", camera.position);
+		modelShader.SetMat4("view", viewMat);
+		modelShader.SetMat4("projection", projection);
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f)); // translate it down so it's at the center of the scene
 		model = glm::scale(model, glm::vec3(0.2f));	// it's a bit too big for our scene, so scale it down
 		modelShader.SetMat4("model", model);
-		modelShader.SetMat4("view", viewMat);
-		modelShader.SetMat4("projection", projection);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		ourModel.Draw(modelShader);
-		modelShader.SetMat4("view", backViewMat);
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-		ourModel.Draw(modelShader);
+		ourModel.Draw(modelShader, 1); // 这里填1是因为0号texture unit已经被skyboxTexture占用了，所以模型纹理从1号开始征用texture unit
 
 		// 绘制选中特效
 		//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
@@ -601,84 +321,23 @@ GLint main() {
 		//glEnable(GL_DEPTH_TEST);
 
 		// skybox
-		// 镜头移动的效果本质上是整个场景在相对镜头移动，镜头本身没动，动的是场景，所以当我们把skybox的view变换矩阵中的translation去掉
-		// 之后，skybox和镜头就永远保持相对静止了，再加上禁止skybox写入深度缓冲，就意味着哪怕有模型被skybox遮挡，也依然可以通过depth testing
 		glDepthFunc(GL_LEQUAL);
 		skyboxShader.Use();
+		skyboxShader.SetInt("skybox", 0);
 		skyboxShader.SetMat4("view", glm::mat4(glm::mat3(viewMat))); // 去掉平移变换
 		skyboxShader.SetMat4("projection", projection);
 		glBindVertexArray(skyboxVAO);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		skyboxShader.SetMat4("view", glm::mat4(glm::mat3(backViewMat)));
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
 		glDepthFunc(GL_LESS);
-
-		// 透明物体的渲染位于不透明物之后，所有透明物体都要集中起来排序，然后从远到近渲染，之所以要排序是因为深度检测，如果近处的透明物先渲染，
-		// 那么当远处的物体渲染时则会因为无法通过深度检测而被直接discard，于是近处的透明物后面就不会透明显示远处的物体，变得空无一物
-		// 所以我们排序从远到近渲染透明物，透明物的渲染位于不透明物之后也是这个原因。
-		std::map<GLfloat, glm::vec3> sorted;
-		//for (GLuint i = 0; i < vegetationPos.size(); i++) {
-		//	GLfloat distance = glm::length(camera.position - vegetationPos[i]);
-		//	sorted[distance] = vegetationPos[i];
-		//}
-		for (GLuint i = 0; i < windowPos.size(); i++) {
-			GLfloat distance = glm::length(camera.position - windowPos[i]);
-			sorted[distance] = windowPos[i];
-		}
-		// glass
-		glBindVertexArray(transparentVAO);
-		glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, grassTexture);
-		textureShader.Use();
-		//for (std::map<GLfloat, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
-		//	model = glm::mat4(1.0f);
-		//	model = glm::translate(model, it->second);
-		//	textureShader.SetMat4("model", model);
-		//	glDrawArrays(GL_TRIANGLES, 0, 6);
-		//}
-		// red window
-		glBindTexture(GL_TEXTURE_2D, windowTexture);
-		for (std::map<GLfloat, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
-			model = glm::mat4(1.0f);
-			model = glm::translate(model, it->second);
-			textureShader.SetMat4("model", model);
-			textureShader.SetMat4("view", viewMat);
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			textureShader.SetMat4("view", backViewMat);
-			glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-		}
-
-		// rear-mirror
-		// 一定是在自定义FBO参与的所有绘制完毕之后才执行以下代码
-		// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
-		glDisable(GL_DEPTH_TEST);
-		glBindVertexArray(quadVAO);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texColorBuffer); // use the color attachment texture as the texture of the quad plane
-		screenShader.Use();
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-		glEnable(GL_DEPTH_TEST);
 
 		// 交换缓冲，检查并调用事件
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	glDeleteVertexArrays(1, &quadVAO);
-	glDeleteBuffers(1, &quadVBO);
-	glDeleteVertexArrays(1, &cubeVAO);
-	glDeleteBuffers(1, &cubeVBO);
 	glDeleteVertexArrays(1, &planeVAO);
 	glDeleteBuffers(1, &planeVBO);
-	glDeleteVertexArrays(1, &transparentVAO);
-	glDeleteBuffers(1, &transparentVBO);
 	glDeleteVertexArrays(1, &skyboxVAO);
 	glDeleteBuffers(1, &skyboxVBO);
 

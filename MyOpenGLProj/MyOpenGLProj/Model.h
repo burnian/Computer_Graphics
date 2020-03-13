@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 02/17/2020, 20:38
-*@Last Modify: 03/08/2020, 13:26
+*@Last Modify: 03/13/2020, 13:34
 *@Desc: model
 *********************************************************/
 #pragma once
@@ -25,9 +25,11 @@ public:
 		LoadModel(path);
 	}
 
-	void Draw(const Shader &shader) {
+	// 一个模型通常有多个mesh
+	//@param texUnitOffset 可使用的纹理单元起始编号
+	void Draw(const Shader &shader, GLuint texUnitOffset = 0) {
 		for (GLuint i = 0; i < meshes.size(); i++)
-			meshes[i].Draw(shader);
+			meshes[i].Draw(shader, texUnitOffset);
 	};
 
 	std::vector<Texture> texturesLoaded;

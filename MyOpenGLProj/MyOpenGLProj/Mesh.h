@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 02/17/2020, 14:36
-*@Last Modify: 02/29/2020, 11:45
+*@Last Modify: 03/13/2020, 13:34
 *@Desc: Mesh
 *********************************************************/
 #pragma once
@@ -35,11 +35,15 @@ public:
 		SetupMesh();
 	};
 
-	void Draw(const Shader &shader) {
+	// 一个mesh最多可以有32张纹理，每种纹理默认从1开始命名，如：texture_diffuse1
+	//@param texUnitOffset 可使用的纹理单元起始编号
+	void Draw(const Shader &shader, GLuint texUnitOffset) {
 		GLuint diffuseNr = 1;
 		GLuint specularNr = 1;
+		GLuint normalNr = 1;
+		GLuint heightNr = 1;
 		for (GLuint i = 0; i < textures.size(); i++) {
-			glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
+			glActiveTexture(GL_TEXTURE0 + texUnitOffset + i); // activate proper texture unit before binding
 			// retrieve texture number (the N in diffuse_textureN)
 			std::string number;
 			std::string name = textures[i].type;
@@ -47,8 +51,12 @@ public:
 				number = std::to_string(diffuseNr++);
 			else if (name == "texture_specular")
 				number = std::to_string(specularNr++);
-
-			shader.SetFloat("material." + name + number, i);
+			else if (name == "texture_normal")
+				number = std::to_string(normalNr++);
+			else if (name == "texture_height")
+				number = std::to_string(heightNr++);
+			
+			shader.SetInt("material." + name + number, texUnitOffset + i); // 想通过glUniform1f接口把一个float值赋给sampler2D无法成功，sampler2D貌似只接受int
 			glBindTexture(GL_TEXTURE_2D, textures[i].id);
 		}
 		glActiveTexture(GL_TEXTURE0);
@@ -59,11 +67,9 @@ public:
 		glBindVertexArray(0);
 	};
 
-	/*  Mesh Data  */
 	std::vector<Vertex> vertices;
 	std::vector<GLuint> indices;
 	std::vector<Texture> textures;
-
 private:
 	// 步骤错了，渲染就会出问题
 	void SetupMesh() {
