@@ -9,7 +9,6 @@ uniform Material material;
 
 struct DirLight {
     vec3 direction;
-  
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -46,6 +45,11 @@ void main() {
 	vec3 result = CalcDirLight(dirLight, norm, frag2view);
 	// 局部高光
 	result += texture(material.texture_height1, TexCoords).rgb * texture(skybox, reflect(-frag2view, norm)).rgb;
+	// 全局折射
+	float airRefraction = 1.00;
+	float glassRefraction = 1.52;
+	float ratio = airRefraction / glassRefraction;
+    result += texture(skybox, refract(-frag2view, norm, ratio)).rgb;
 
-	FragColor = vec4(result, 1.0);
+    FragColor = vec4(result, 1.0);
 }

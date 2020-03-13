@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 02/17/2020, 14:48
-*@Last Modify: 03/13/2020, 13:35
+*@Last Modify: 03/13/2020, 13:59
 *@Desc: 添加第三方库分两步：
 *		1.能让项目找到库文件（项目属性页->VC++目录->包含目录，库目录->分别添加include路径和lib路径）；
 *		2.将.lib文件链接到项目（项目属性页->链接器->输入->附加依赖项->添加对应.lib文件）；
@@ -169,6 +169,9 @@ GLint main() {
 	Shader modelShader("../../res/shader/metal.vs", "../../res/shader/metal.fs");
 	modelShader.SetupDirLight();
 
+	Shader modelTransShader("../../res/shader/glass.vs", "../../res/shader/glass.fs");
+	modelTransShader.SetupDirLight();
+
 	// load models
 	Model ourModel("../../res/model/nanosuit/nanosuit.obj");
 
@@ -299,6 +302,22 @@ GLint main() {
 		modelShader.SetMat4("model", model);
 		ourModel.Draw(modelShader, 1); // 这里填1是因为0号texture unit已经被skyboxTexture占用了，所以模型纹理从1号开始征用texture unit
 
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+		modelTransShader.SetInt("skybox", 0);
+
+		modelTransShader.Use();
+		modelTransShader.SetVec3("viewPos", camera.position);
+		modelTransShader.SetMat4("view", viewMat);
+		modelTransShader.SetMat4("projection", projection);
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(2.0f, -0.5f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::scale(model, glm::vec3(0.2f));	// it's a bit too big for our scene, so scale it down
+		modelTransShader.SetMat4("model", model);
+		ourModel.Draw(modelTransShader, 1); // 这里填1是因为0号texture unit已经被skyboxTexture占用了，所以模型纹理从1号开始征用texture unit
+
+		
 		// 绘制选中特效
 		//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		//glStencilMask(0x00);
