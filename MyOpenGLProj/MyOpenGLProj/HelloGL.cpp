@@ -92,7 +92,7 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 }
 
 
-int _main() {
+int main() {
 	// 初始化GLFW
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);//opengl 主版本号设置为3

@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 03/13/2020, 10:35
-*@Last Modify: 03/13/2020, 10:35
+*@Last Modify: 03/18/2020, 14:46
 *@Desc: 添加第三方库分两步：
 *		1.能让项目找到库文件（项目属性页->VC++目录->包含目录，库目录->分别添加include路径和lib路径）；
 *		2.将.lib文件链接到项目（项目属性页->链接器->输入->附加依赖项->添加对应.lib文件）；
@@ -75,7 +75,7 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 }
 
 
-GLint _main() {
+GLint main() {
 	// 初始化GLFW
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);//opengl 主版本号设置为3
@@ -132,6 +132,16 @@ GLint _main() {
 	//glEnable(GL_CULL_FACE);
 	//glCullFace(GL_FRONT);
 
+	// uniform block object
+	GLuint UBOMatrices;
+	glGenBuffers(1, &UBOMatrices);
+	glBindBuffer(GL_UNIFORM_BUFFER, UBOMatrices);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	// 0号binding point指向UBO的0到2个mat4的这块区域
+	glBindBufferRange(GL_UNIFORM_BUFFER, 0, UBOMatrices, 0, sizeof(glm::mat4));
+
 	// screen quad
 	GLfloat quadVertices[] = {
 		// positions   // texCoords
@@ -159,6 +169,7 @@ GLint _main() {
 	Shader screenShader("../../res/shader/screenShader.vs", "../../res/shader/screenShader.fs");
 	screenShader.Use();
 	screenShader.SetInt("screenTexture", 0);
+	screenShader.BindUniformBlock("Matrices", 0);
 
 	// framebuffer configure
 	GLuint FBO;
@@ -280,7 +291,8 @@ GLint _main() {
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
 
-	GLuint floorTexture = utils::LoadTexture("../../res/texture/metal.png");
+	GLuint floorFrontTexture = utils::LoadTexture("../../res/texture/metal.png");
+	GLuint floorBackTexture = utils::LoadTexture("../../res/texture/marble.jpg");
 
 	// transparent things
 	std::vector<glm::vec3> windowPos{
@@ -334,11 +346,8 @@ GLint _main() {
 	Shader textureShader("../../res/shader/textureShader.vs", "../../res/shader/textureShader.fs");
 	textureShader.Use();
 	textureShader.SetInt("texture1", 0);
-
-	Shader modelShader("../../res/shader/metal.vs", "../../res/shader/metal.fs");
-	Shader singleColorShader("../../res/shader/SingleColor.vs", "../../res/shader/SingleColor.fs");
-	// 平行光
-	modelShader.SetupDirLight();
+	textureShader.SetInt("backTexture", 1);
+	textureShader.BindUniformBlock("Matrices", 0);
 
 	// load models
 	Model ourModel("../../res/model/nanosuit/nanosuit.obj");
@@ -403,6 +412,7 @@ GLint _main() {
 	Shader skyboxShader("../../res/shader/skybox.vs", "../../res/shader/skybox.fs");
 	skyboxShader.Use();
 	skyboxShader.SetInt("skybox", 0);
+	skyboxShader.BindUniformBlock("Matrices", 0);
 
 	GLfloat mirrorCubeVertices[] = {
 		// position           // normal
@@ -465,6 +475,7 @@ GLint _main() {
 	Shader mirrorCubeShader("../../res/shader/cubemap.vs", "../../res/shader/cubemap.fs");
 	mirrorCubeShader.Use();
 	mirrorCubeShader.SetInt("skybox", 0);
+	mirrorCubeShader.BindUniformBlock("Matrices", 0);
 
 	std::vector<std::string> faces{
 		"../../res/texture/skybox/right.jpg",
@@ -496,6 +507,7 @@ GLint _main() {
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// 计算view space正面和背面变换矩阵
 		glm::mat4 viewMat = camera.GetViewMatrix();
 		camera.LookBack();
 		glm::mat4 backViewMat = camera.GetViewMatrix();
@@ -505,10 +517,11 @@ GLint _main() {
 		// floor
 		glBindVertexArray(planeVAO);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, floorTexture);
+		glBindTexture(GL_TEXTURE_2D, floorFrontTexture);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, floorBackTexture);
 		textureShader.Use();
 		textureShader.SetMat4("view", viewMat);
-		textureShader.SetMat4("projection", projection);
 		model = glm::mat4(1.0f);
 		textureShader.SetMat4("model", model);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -526,7 +539,6 @@ GLint _main() {
 		model = glm::translate(model, glm::vec3(-2.0f, 0.0f, -1.0f));
 		textureShader.SetMat4("model", model);
 		textureShader.SetMat4("view", viewMat);
-		textureShader.SetMat4("projection", projection);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		textureShader.SetMat4("view", backViewMat);
@@ -541,7 +553,6 @@ GLint _main() {
 		model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0f));
 		mirrorCubeShader.SetMat4("model", model);
 		mirrorCubeShader.SetMat4("view", viewMat);
-		mirrorCubeShader.SetMat4("projection", projection);
 		mirrorCubeShader.SetVec3("viewPos", camera.position);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -549,32 +560,12 @@ GLint _main() {
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		// nanosuit
-		modelShader.Use();
-		modelShader.SetVec3("viewPos", camera.position);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, skyboxTexture);
-		modelShader.SetInt("skybox", 0);
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f)); // translate it down so it's at the center of the scene
-		model = glm::scale(model, glm::vec3(0.2f));	// it's a bit too big for our scene, so scale it down
-		modelShader.SetMat4("model", model);
-		modelShader.SetMat4("view", viewMat);
-		modelShader.SetMat4("projection", projection);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		ourModel.Draw(modelShader);
-		modelShader.SetMat4("view", backViewMat);
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-		ourModel.Draw(modelShader);
-
-
 		// skybox
 		// 镜头移动的效果本质上是整个场景在相对镜头移动，镜头本身没动，动的是场景，所以当我们把skybox的view变换矩阵中的translation去掉
 		// 之后，skybox和镜头就永远保持相对静止了，再加上禁止skybox写入深度缓冲，就意味着哪怕有模型被skybox遮挡，也依然可以通过depth testing
 		glDepthFunc(GL_LEQUAL);
 		skyboxShader.Use();
 		skyboxShader.SetMat4("view", glm::mat4(glm::mat3(viewMat))); // 去掉平移变换
-		skyboxShader.SetMat4("projection", projection);
 		glBindVertexArray(skyboxVAO);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);

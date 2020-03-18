@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 08/30/2019, 13:36
-*@Last Modify: 02/19/2020, 11:49
+*@Last Modify: 03/18/2020, 14:46
 *@Desc: 着色器
 *********************************************************/
 #pragma once
@@ -74,6 +74,13 @@ public:
 		glUseProgram(ID);
 	};
 
+	// 把shader程序中的uniform block和binding point关联起来。UB = uniform block
+	//@param name shader中的uniform block名
+	void BindUniformBlock(const std::string &UBName, GLuint UBbindingPoint) {
+		GLuint UBIndex = glGetUniformBlockIndex(ID, UBName.c_str());
+		glUniformBlockBinding(ID, UBIndex, UBbindingPoint);
+	};
+
 	// 打开平行光
 	void SetupDirLight() {
 		Use();
@@ -142,7 +149,7 @@ public:
 	GLuint ID;
 
 private:
-	void CheckCompileErrors(GLuint shader, std::string type) {
+	void CheckCompileErrors(GLuint shader, const std::string &type) {
 		GLint success;
 		GLchar infoLog[1024];
 		if (type != "PROGRAM") {
