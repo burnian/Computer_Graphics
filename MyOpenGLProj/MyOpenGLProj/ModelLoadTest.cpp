@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 02/17/2020, 14:48
-*@Last Modify: 03/13/2020, 13:59
+*@Last Modify: 03/20/2020, 22:48
 *@Desc: 添加第三方库分两步：
 *		1.能让项目找到库文件（项目属性页->VC++目录->包含目录，库目录->分别添加include路径和lib路径）；
 *		2.将.lib文件链接到项目（项目属性页->链接器->输入->附加依赖项->添加对应.lib文件）；
@@ -134,6 +134,16 @@ GLint main() {
 	//glEnable(GL_CULL_FACE);
 	//glCullFace(GL_FRONT);
 
+
+	// uniform block object
+	GLuint UBOMatrices;
+	glGenBuffers(1, &UBOMatrices);
+	glBindBuffer(GL_UNIFORM_BUFFER, UBOMatrices);
+	glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glBindBufferRange(GL_UNIFORM_BUFFER, 0, UBOMatrices, 0, 2 * sizeof(glm::mat4));// 0号binding point指向UBO的0到2个mat4的这块区域
+
 	// floor
 	GLfloat planeVertices[] = {
 		// positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
@@ -149,10 +159,8 @@ GLint main() {
 	GLuint planeVAO, planeVBO;
 	glGenVertexArrays(1, &planeVAO);
 	glGenBuffers(1, &planeVBO);
-
 	glBindVertexArray(planeVAO); // 这里的绑定很关键，会把VAO和VBO联系起来
 	glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-
 	// 指定VBO数据区
 	glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices, GL_STATIC_DRAW);
 	// 指定VAO对数据的解析方式
@@ -162,15 +170,6 @@ GLint main() {
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
 
 	GLuint floorTexture = utils::LoadTexture("../../res/texture/metal.png");
-
-	// shader
-	Shader textureShader("../../res/shader/textureShader.vs", "../../res/shader/textureShader.fs");
-
-	Shader modelShader("../../res/shader/metal.vs", "../../res/shader/metal.fs");
-	modelShader.SetupDirLight();
-
-	Shader modelTransShader("../../res/shader/glass.vs", "../../res/shader/glass.fs");
-	modelTransShader.SetupDirLight();
 
 	// load models
 	Model ourModel("../../res/model/nanosuit/nanosuit.obj");
@@ -224,15 +223,11 @@ GLint main() {
 	GLuint skyboxVAO, skyboxVBO;
 	glGenVertexArrays(1, &skyboxVAO);
 	glGenBuffers(1, &skyboxVBO);
-
 	glBindVertexArray(skyboxVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
-
 	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
-
-	Shader skyboxShader("../../res/shader/skybox.vs", "../../res/shader/skybox.fs");
 
 	std::vector<std::string> faces {
 		"../../res/texture/skybox/right.jpg",
@@ -243,6 +238,21 @@ GLint main() {
 		"../../res/texture/skybox/back.jpg",
 	};
 	GLuint skyboxTexture = utils::LoadCubemap(faces);
+
+	// shader
+	Shader textureShader("../../res/shader/textureShader.vs", "../../res/shader/textureShader.fs");
+
+	Shader skyboxShader("../../res/shader/skybox.vs", "../../res/shader/skybox.fs");
+
+	Shader normalShader("../../res/shader/normalVisualize.vs", "../../res/shader/normalVisualize.fs", "../../res/shader/normalVisualize.gs");
+	Shader modelShader("../../res/shader/metal.vs", "../../res/shader/metal.fs");
+	modelShader.SetupDirLight();
+
+	Shader modelExplodeShader("../../res/shader/metal.vs", "../../res/shader/metal.fs", "../../res/shader/metal.gs");
+	modelExplodeShader.SetupDirLight();
+
+	Shader modelTransShader("../../res/shader/glass.vs", "../../res/shader/glass.fs");
+	modelTransShader.SetupDirLight();
 
 
 	glm::mat4 model;
@@ -260,7 +270,7 @@ GLint main() {
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // we're not using the stencil buffer now
 
-		glm::mat4 viewMat = camera.GetViewMatrix();
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(camera.GetViewMatrix()));
 
 		// 构造模板的准备工作
 		//glStencilMask(0x00); // make sure we don't update the stencil buffer while drawing the floor
@@ -271,8 +281,6 @@ GLint main() {
 		glBindTexture(GL_TEXTURE_2D, floorTexture);
 		textureShader.Use();
 		textureShader.SetInt("texture1", 0);
-		textureShader.SetMat4("view", viewMat);
-		textureShader.SetMat4("projection", projection);
 		model = glm::mat4(1.0f);
 		textureShader.SetMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -287,30 +295,40 @@ GLint main() {
 		//glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		// 所有待写入stencil buffer 的值都要先与该掩码相与，再把结果写入stencil buffer
 		//glStencilMask(0xFF); // enable writing to the stencil buffer
-
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
-		modelShader.SetInt("skybox", 0);
-
 		modelShader.Use();
+		modelShader.SetInt("skybox", 0);
 		modelShader.SetVec3("viewPos", camera.position);
-		modelShader.SetMat4("view", viewMat);
-		modelShader.SetMat4("projection", projection);
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f)); // translate it down so it's at the center of the scene
 		model = glm::scale(model, glm::vec3(0.2f));	// it's a bit too big for our scene, so scale it down
 		modelShader.SetMat4("model", model);
 		ourModel.Draw(modelShader, 1); // 这里填1是因为0号texture unit已经被skyboxTexture占用了，所以模型纹理从1号开始征用texture unit
-
-
+		// nanosuit normal
+		normalShader.Use();
+		normalShader.SetMat4("model", model);
+		ourModel.Draw(normalShader, 1);
+		
+		// explode nanosuit
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
-		modelTransShader.SetInt("skybox", 0);
+		modelExplodeShader.Use();
+		modelExplodeShader.SetFloat("time", currentFrame);
+		modelExplodeShader.SetInt("skybox", 0);
+		modelExplodeShader.SetVec3("viewPos", camera.position);
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-3.0f, -0.5f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::scale(model, glm::vec3(0.2f));	// it's a bit too big for our scene, so scale it down
+		modelExplodeShader.SetMat4("model", model);
+		ourModel.Draw(modelExplodeShader, 1); // 这里填1是因为0号texture unit已经被skyboxTexture占用了，所以模型纹理从1号开始征用texture unit
 
+		// glass nanosuit
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
 		modelTransShader.Use();
+		modelTransShader.SetInt("skybox", 0);
 		modelTransShader.SetVec3("viewPos", camera.position);
-		modelTransShader.SetMat4("view", viewMat);
-		modelTransShader.SetMat4("projection", projection);
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(2.0f, -0.5f, 0.0f)); // translate it down so it's at the center of the scene
 		model = glm::scale(model, glm::vec3(0.2f));	// it's a bit too big for our scene, so scale it down
@@ -328,7 +346,6 @@ GLint main() {
 		//model = glm::translate(model, glm::vec3(0.0f, -0.2f, 0.0f));
 		//singleColorShader.SetMat4("model", model);
 		//singleColorShader.SetMat4("view", viewMat);
-		//singleColorShader.SetMat4("projection", projection);
 		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		//ourModel.Draw(singleColorShader);
 		//singleColorShader.SetMat4("view", backViewMat);
@@ -343,8 +360,6 @@ GLint main() {
 		glDepthFunc(GL_LEQUAL);
 		skyboxShader.Use();
 		skyboxShader.SetInt("skybox", 0);
-		skyboxShader.SetMat4("view", glm::mat4(glm::mat3(viewMat))); // 去掉平移变换
-		skyboxShader.SetMat4("projection", projection);
 		glBindVertexArray(skyboxVAO);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);

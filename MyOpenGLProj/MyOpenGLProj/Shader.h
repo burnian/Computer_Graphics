@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 08/30/2019, 13:36
-*@Last Modify: 03/18/2020, 14:46
+*@Last Modify: 03/20/2020, 22:48
 *@Desc: 着色器
 *********************************************************/
 #pragma once
@@ -14,10 +14,11 @@
 
 class Shader {
 public:
-	Shader(const GLchar* vertexPath, const GLchar* fragmentPath) {
+	Shader(const GLchar* vertexPath, const GLchar* fragmentPath, const GLchar* geometryPath = nullptr) {
 		// 从文件路径中获取顶点/片段着色器
 		std::string vertexCode;
 		std::string fragmentCode;
+		std::string geometryCode;
 		std::ifstream vShaderFile;
 		std::ifstream fShaderFile;
 		// 保证ifstream对象可以抛出异常
@@ -40,31 +41,49 @@ public:
 			//std::string t = fShaderStream.str();
 			//vv = s.c_str();
 			//ff = t.c_str();
+			if (geometryPath) {
+				std::ifstream gShaderFile;
+				gShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+				gShaderFile.open(geometryPath);
+				std::stringstream gShaderStream;
+				gShaderStream << gShaderFile.rdbuf();
+				gShaderFile.close();
+				geometryCode = gShaderStream.str();
+			}
 		}
 		catch (std::ifstream::failure e) {
 			std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
 		}
-		const GLchar* vShaderCode = vertexCode.c_str();
-		const GLchar* fShaderCode = fragmentCode.c_str();
+		ID = glCreateProgram();
 		// 顶点着色器
+		const GLchar* vShaderCode = vertexCode.c_str();
 		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertexShader, 1, &vShaderCode, NULL);// @para2 传递的源码字符串数量
 		glCompileShader(vertexShader);
 		CheckCompileErrors(vertexShader, "VERTEX");
-		// 片段着色器
+		glAttachShader(ID, vertexShader);
+		glDeleteShader(vertexShader);
+		// 片元着色器
+		const GLchar* fShaderCode = fragmentCode.c_str();
 		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(fragmentShader, 1, &fShaderCode, NULL);
 		glCompileShader(fragmentShader);
 		CheckCompileErrors(fragmentShader, "FRAGMENT");
-		// 链接顶点和片段着色器到一个着色器程序中，当链接着色器至一个程序的时候，它会把每个着色器的输出链接到下个着色器的输入。当输出和输入不匹配的时候，你会得到一个连接错误。
-		ID = glCreateProgram();
-		glAttachShader(ID, vertexShader);
 		glAttachShader(ID, fragmentShader);
+		glDeleteShader(fragmentShader);
+		// 几何着色器
+		if (geometryPath) {
+			const GLchar* gShaderCode = geometryCode.c_str();
+			GLuint geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+			glShaderSource(geometryShader, 1, &gShaderCode, NULL);
+			glCompileShader(geometryShader);
+			CheckCompileErrors(geometryShader, "GEOMETRY");
+			glAttachShader(ID, geometryShader);
+			glDeleteShader(geometryShader);
+		}
+		// 链接顶点和片段着色器到一个着色器程序中，当链接着色器至一个程序的时候，它会把每个着色器的输出链接到下个着色器的输入。当输出和输入不匹配的时候，你会得到一个连接错误。
 		glLinkProgram(ID);
 		CheckCompileErrors(ID, "PROGRAM");
-		// 删除着色器对象
-		glDeleteShader(vertexShader);
-		glDeleteShader(fragmentShader);
 	};
 
 	~Shader() {};
@@ -85,7 +104,6 @@ public:
 	void SetupDirLight() {
 		Use();
 		SetVec3("dirLight.direction", 1.0f, 1.0f, 0.0f);
-		//SetVec3("dirLight.ambient", 0.1f, 0.1f, 0.1f);
 		SetVec3("dirLight.ambient", 1.0f, 1.0f, 1.0f);
 		SetVec3("dirLight.diffuse", 1.0f, 1.0f, 1.0f);
 		SetVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
