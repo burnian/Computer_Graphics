@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 08/30/2019, 13:36
-*@Last Modify: 03/20/2020, 22:48
+*@Last Modify: 03/24/2020, 00:22
 *@Desc: 着色器
 *********************************************************/
 #pragma once
@@ -140,9 +140,17 @@ public:
 		glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
 	};
 
+	void SetVec2(const std::string &name, const glm::vec2 &value) const {
+		glUniform2fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+	};
+
+	void SetVec2(const std::string &name, GLfloat x, GLfloat y) const {
+		glUniform2f(glGetUniformLocation(ID, name.c_str()), x, y);
+	};
+
 	void SetVec3(const std::string &name, const glm::vec3 &value) const {
 		glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
-	}
+	};
 
 	void SetVec3(const std::string &name, GLfloat x, GLfloat y, GLfloat z) const {
 		glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
@@ -150,11 +158,11 @@ public:
 
 	void SetVec4(const std::string &name, const glm::vec4 &value) const {
 		glUniform4fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
-	}
+	};
 
 	void SetVec4(const std::string &name, GLfloat x, GLfloat y, GLfloat z, GLfloat w) const {
 		glUniform4f(glGetUniformLocation(ID, name.c_str()), x, y, z, w);
-	}
+	};
 
 	void SetMat4(const std::string &name, glm::mat4 mat) const {
 		//@param1 transform 这个uniform 变量的位置

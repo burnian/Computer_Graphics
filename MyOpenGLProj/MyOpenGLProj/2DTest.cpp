@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 03/19/2020, 08:32
-*@Last Modify: 03/19/2020, 08:33
+*@Last Modify: 03/24/2020, 00:22
 *@Desc: 
 *********************************************************/
 #include <glad/glad.h> 
@@ -117,26 +117,54 @@ GLint main() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	// 
-	GLfloat points[] = {
-		-0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // top-left
-		 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // top-right
-		 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // bottom-right
-		-0.5f, -0.5f, 1.0f, 1.0f, 0.0f  // bottom-left
+	// instancing 批量渲染
+	GLfloat quadVertices[] = {
+		// positions     // colors
+		-0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
+		 0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
+		-0.05f, -0.05f,  0.0f, 0.0f, 1.0f,
+
+		-0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
+		 0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
+		 0.05f,  0.05f,  0.0f, 1.0f, 1.0f
 	};
 
-	GLuint VAO, VBO;
+	GLuint index = 0;
+	glm::vec2 translations[100];
+	for (GLfloat y = -0.9f; y < 1.0f; y += 0.2f) {
+		for (GLfloat x = -0.9f; x < 1.0f; x += 0.2f) {
+			translations[index++] = glm::vec2(x, y);
+		}
+	}
+
+	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
 	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(points), &points, GL_STATIC_DRAW);
+	GLuint quadVBO;
+	glGenBuffers(1, &quadVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	GLuint instanceVBO;
+	glGenBuffers(1, &instanceVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 100, &translations[0], GL_STATIC_DRAW);
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*)0);
+	//@param1 需要在vs绘制中修改的属性编号，2在这里表示每绘制一个instance需要修改指向translations的指针
+	//@param2 属性除数，默认为0
+	//		0：要求OpenGL 每渲染1个新的vertex 时更新顶点属性
+	//		1：要求OpenGL 每渲染1个新的instance 时更新顶点属性
+	//		2：要求OpenGL 每渲染2个新的instance 时更新顶点属性。3,4……类似
+	glVertexAttribDivisor(2, 1);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	Shader geometryShader("../../res/shader/geometry.vs", "../../res/shader/geometry.fs", "../../res/shader/geometry.gs");
+	Shader instanceShader("../../res/shader/2DAttribDivisor.vs", "../../res/shader/2DAttribDivisor.fs");
+
 
 	while (!glfwWindowShouldClose(window)) {
 		// 帧率校正
@@ -152,16 +180,16 @@ GLint main() {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glBindVertexArray(VAO);
-		geometryShader.Use();
-		glDrawArrays(GL_POINTS, 0, 4);
-
+		instanceShader.Use();
+		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100);
 
 		// 交换缓冲，检查并调用事件
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &quadVBO);
+	glDeleteBuffers(1, &instanceVBO);
 
 	glfwTerminate();
 	return 0;
