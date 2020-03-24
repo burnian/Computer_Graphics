@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 02/17/2020, 14:36
-*@Last Modify: 03/13/2020, 13:34
+*@Last Modify: 03/25/2020, 01:07
 *@Desc: Mesh
 *********************************************************/
 #pragma once
@@ -70,6 +70,7 @@ public:
 	std::vector<Vertex> vertices;
 	std::vector<GLuint> indices;
 	std::vector<Texture> textures;
+	GLuint VAO, VBO, EBO;
 private:
 	// 步骤错了，渲染就会出问题
 	void SetupMesh() {
@@ -96,7 +97,4 @@ private:
 
 		glBindVertexArray(0);
 	};
-
-	/*  Render data  */
-	GLuint VAO, VBO, EBO;
 };

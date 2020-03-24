@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 03/19/2020, 08:32
-*@Last Modify: 03/24/2020, 00:22
+*@Last Modify: 03/25/2020, 01:07
 *@Desc: 
 *********************************************************/
 #include <glad/glad.h> 
@@ -182,6 +182,7 @@ GLint main() {
 		glBindVertexArray(VAO);
 		instanceShader.Use();
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100);
+		glBindVertexArray(0);
 
 		// 交换缓冲，检查并调用事件
 		glfwSwapBuffers(window);
