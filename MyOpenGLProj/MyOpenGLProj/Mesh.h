@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 02/17/2020, 14:36
-*@Last Modify: 03/25/2020, 01:07
+*@Last Modify: 03/26/2020, 01:29
 *@Desc: Mesh
 *********************************************************/
 #pragma once
@@ -36,8 +36,10 @@ public:
 	};
 
 	// 一个mesh最多可以有32张纹理，每种纹理默认从1开始命名，如：texture_diffuse1
-	//@param texUnitOffset 可使用的纹理单元起始编号
-	void Draw(const Shader &shader, GLuint texUnitOffset) {
+	//@param1 本次绘制使用的着色器
+	//@param2 一次draw call 调用，绘制model 数量
+	//@param3 可使用的纹理单元起始编号
+	void Draw(const Shader &shader, GLuint amount, GLuint texUnitOffset) {
 		GLuint diffuseNr = 1;
 		GLuint specularNr = 1;
 		GLuint normalNr = 1;
@@ -63,7 +65,10 @@ public:
 
 		// draw mesh
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+		if (amount > 1)
+			glDrawElementsInstanced(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0, amount);
+		else
+			glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 	};
 

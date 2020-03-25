@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 03/24/2020, 00:51
-*@Last Modify: 03/25/2020, 01:07
+*@Last Modify: 03/26/2020, 01:28
 *@Desc: 行星带
 *********************************************************/
 #include <glad/glad.h> 
@@ -29,7 +29,7 @@ const GLfloat FAR_PLANE = 1000.0f;
 GLfloat deltaTime = 0.0f; // Time between current frame and last frame
 GLfloat lastFrame = 0.0f; // Time of last frame
 // 相机
-Camera camera(glm::vec3(200.0f, 50.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -60.0f);
+Camera camera(glm::vec3(-100.0f, 50.0f, 300.0f), glm::vec3(0.0f, 1.0f, 0.0f), -60.0f);
 glm::mat4 projection = glm::perspective(glm::radians(camera.fov), SCR_WIDTH / SCR_HEIGHT, NEAR_PLANE, FAR_PLANE);
 
 
@@ -119,6 +119,7 @@ GLint main() {
 
 	// 开启深度缓冲
 	glEnable(GL_DEPTH_TEST);
+
 
 	// uniform block object
 	GLuint UBOMatrices;
@@ -220,14 +221,7 @@ GLint main() {
 
 		// draw meteorites
 		asteroidShader.Use();
-		asteroidShader.SetInt("material.texture_diffuse1", 0);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, rock.texturesLoaded[0].id); // note: we also made the textures_loaded vector public (instead of private) from the model class.
-		for (Mesh mesh : rock.meshes) {
-			glBindVertexArray(mesh.VAO);
-			glDrawElementsInstanced(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0, amount);
-			glBindVertexArray(0);
-		}
+		rock.Draw(asteroidShader, amount);
 
 
 		// 交换缓冲，检查并调用事件

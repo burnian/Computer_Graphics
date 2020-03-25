@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 02/17/2020, 20:38
-*@Last Modify: 03/13/2020, 13:34
+*@Last Modify: 03/26/2020, 01:29
 *@Desc: model
 *********************************************************/
 #pragma once
@@ -26,10 +26,12 @@ public:
 	}
 
 	// 一个模型通常有多个mesh
-	//@param texUnitOffset 可使用的纹理单元起始编号
-	void Draw(const Shader &shader, GLuint texUnitOffset = 0) {
-		for (GLuint i = 0; i < meshes.size(); i++)
-			meshes[i].Draw(shader, texUnitOffset);
+	//@param1 本次绘制使用的着色器
+	//@param2 一次draw call 调用，绘制model 数量
+	//@param3 可使用的纹理单元起始编号
+	void Draw(const Shader &shader, GLuint amount = 1, GLuint texUnitOffset = 0) {
+		for (Mesh mesh : meshes)
+			mesh.Draw(shader, amount, texUnitOffset);
 	};
 
 	std::vector<Texture> texturesLoaded;
