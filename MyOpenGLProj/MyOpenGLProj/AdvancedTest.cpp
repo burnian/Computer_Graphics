@@ -82,6 +82,7 @@ GLint main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);//opengl 次版本号
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);//告诉GLFW我们使用的是核心模式
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	//glfwWindowHint(GLFW_SAMPLES, 4); // 设置多重采样抗锯齿的子采样数，默认 glEnable(GL_MULTISAMPLE) 是开启的
 
 #ifdef __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
@@ -132,15 +133,17 @@ GLint main() {
 	//glEnable(GL_CULL_FACE);
 	//glCullFace(GL_FRONT);
 
+
 	// uniform block object
+	GLuint mat4size = sizeof(glm::mat4);
 	GLuint UBOMatrices;
 	glGenBuffers(1, &UBOMatrices);
 	glBindBuffer(GL_UNIFORM_BUFFER, UBOMatrices);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+	glBufferData(GL_UNIFORM_BUFFER, 2 * mat4size, NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, mat4size, glm::value_ptr(projection));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	// 0号binding point指向UBO的0到2个mat4的这块区域
-	glBindBufferRange(GL_UNIFORM_BUFFER, 0, UBOMatrices, 0, sizeof(glm::mat4));
+	glBindBufferRange(GL_UNIFORM_BUFFER, 0, UBOMatrices, 0, 2 * mat4size);
 
 	// screen quad
 	GLfloat quadVertices[] = {
@@ -172,10 +175,10 @@ GLint main() {
 	screenShader.BindUniformBlock("Matrices", 0);
 
 	// framebuffer configure
+	// ---------------------
 	GLuint FBO;
 	glGenFramebuffers(1, &FBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);// GL_READ_FRAMEBUFFER, GL_DRAW_FRAMEBUFFER, 当前绑定的这种方式表示前两种操作都是对FBO进行的
-
 	// generate texture
 	GLuint texColorBuffer;
 	glGenTextures(1, &texColorBuffer);
@@ -189,7 +192,6 @@ GLint main() {
 	//@param4 texture : the actual texture to attach.
 	//@param5 level : the mipmap level. We keep this at 0.
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
-
 	// renderbuffer是专门设计用来附加在framebuffer上的，只可写，处理速度快，不像texture object那样通用，
 	// 所以适合放深度测试和模板测试纹理。对于需要采样的纹理而言，不能放renderbuffer里。
 	// renderbuffer和texture都属于framebuffer的attachment。
@@ -198,7 +200,7 @@ GLint main() {
 	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO); // attach it
-
+	// 完成检测
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -488,6 +490,7 @@ GLint main() {
 	GLuint skyboxTexture = utils::LoadCubemap(faces);
 
 
+	glBindBuffer(GL_UNIFORM_BUFFER, UBOMatrices);
 	glm::mat4 model;
 	// 渲染循环，绘制顺序：1.不透明物体任意顺序；2.透明物体从远到近
 	while (!glfwWindowShouldClose(window)) {
@@ -507,11 +510,13 @@ GLint main() {
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
 		// 计算view space正面和背面变换矩阵
 		glm::mat4 viewMat = camera.GetViewMatrix();
 		camera.LookBack();
 		glm::mat4 backViewMat = camera.GetViewMatrix();
 		camera.LookBack();
+
 
 		// 绘制不透明物体
 		// floor
@@ -521,12 +526,12 @@ GLint main() {
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, floorBackTexture);
 		textureShader.Use();
-		textureShader.SetMat4("view", viewMat);
 		model = glm::mat4(1.0f);
 		textureShader.SetMat4("model", model);
+		glBufferSubData(GL_UNIFORM_BUFFER, mat4size, mat4size, glm::value_ptr(viewMat));
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		textureShader.SetMat4("view", backViewMat);
+		glBufferSubData(GL_UNIFORM_BUFFER, mat4size, mat4size, glm::value_ptr(backViewMat));
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -538,10 +543,10 @@ GLint main() {
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(-2.0f, 0.0f, -1.0f));
 		textureShader.SetMat4("model", model);
-		textureShader.SetMat4("view", viewMat);
+		glBufferSubData(GL_UNIFORM_BUFFER, mat4size, mat4size, glm::value_ptr(viewMat));
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		textureShader.SetMat4("view", backViewMat);
+		glBufferSubData(GL_UNIFORM_BUFFER, mat4size, mat4size, glm::value_ptr(backViewMat));
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -565,13 +570,13 @@ GLint main() {
 		// 之后，skybox和镜头就永远保持相对静止了，再加上禁止skybox写入深度缓冲，就意味着哪怕有模型被skybox遮挡，也依然可以通过depth testing
 		glDepthFunc(GL_LEQUAL);
 		skyboxShader.Use();
-		skyboxShader.SetMat4("view", glm::mat4(glm::mat3(viewMat))); // 去掉平移变换
 		glBindVertexArray(skyboxVAO);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+		glBufferSubData(GL_UNIFORM_BUFFER, mat4size, mat4size, glm::value_ptr(viewMat));
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		skyboxShader.SetMat4("view", glm::mat4(glm::mat3(backViewMat)));
+		glBufferSubData(GL_UNIFORM_BUFFER, mat4size, mat4size, glm::value_ptr(backViewMat));
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
@@ -606,10 +611,10 @@ GLint main() {
 			model = glm::mat4(1.0f);
 			model = glm::translate(model, it->second);
 			textureShader.SetMat4("model", model);
-			textureShader.SetMat4("view", viewMat);
+			glBufferSubData(GL_UNIFORM_BUFFER, mat4size, mat4size, glm::value_ptr(viewMat));
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
-			textureShader.SetMat4("view", backViewMat);
+			glBufferSubData(GL_UNIFORM_BUFFER, mat4size, mat4size, glm::value_ptr(backViewMat));
 			glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}

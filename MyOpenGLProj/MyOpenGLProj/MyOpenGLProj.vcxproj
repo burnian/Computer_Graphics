@@ -20,9 +20,9 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{06B85C22-1F06-4A5B-96DA-F7AA394355B8}</ProjectGuid>
+    <ProjectGuid>{4A1208BA-7FAD-4422-9998-20812C11B59E}</ProjectGuid>
     <RootNamespace>MyOpenGLProj</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -81,7 +81,8 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;assimp-vc141-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -91,6 +92,9 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -102,6 +106,7 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
@@ -116,27 +121,67 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Library\src\glad.c" />
-    <ClCompile Include="IAlgorithm.cpp" />
-    <ClCompile Include="LightingTest.cpp" />
+    <ClCompile Include="MSAATest.cpp" />
     <ClCompile Include="stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\res\shader\2DAttribDivisor.fs" />
+    <None Include="..\..\res\shader\2DAttribDivisor.vs" />
+    <None Include="..\..\res\shader\2DInstancing.fs" />
+    <None Include="..\..\res\shader\2DInstancing.vs" />
+    <None Include="..\..\res\shader\asteroidField.fs" />
+    <None Include="..\..\res\shader\asteroidField.vs" />
+    <None Include="..\..\res\shader\cubemap.fs" />
+    <None Include="..\..\res\shader\cubemap.vs" />
     <None Include="..\..\res\shader\fragmentShader.fs" />
-    <None Include="..\..\res\shader\lightingShader.fs" />
-    <None Include="..\..\res\shader\lightingShader.vs" />
+    <None Include="..\..\res\shader\geometry.fs" />
+    <None Include="..\..\res\shader\geometry.gs" />
+    <None Include="..\..\res\shader\geometry.vs" />
+    <None Include="..\..\res\shader\glass.fs" />
+    <None Include="..\..\res\shader\glass.vs" />
+    <None Include="..\..\res\shader\Gouraud.fs" />
+    <None Include="..\..\res\shader\Gouraud.vs" />
+    <None Include="..\..\res\shader\LampShader.fs" />
+    <None Include="..\..\res\shader\LampShader.vs" />
+    <None Include="..\..\res\shader\metal.fs" />
+    <None Include="..\..\res\shader\metal.gs" />
+    <None Include="..\..\res\shader\metal.vs" />
+    <None Include="..\..\res\shader\ModelLoading.fs" />
+    <None Include="..\..\res\shader\ModelLoading.vs" />
+    <None Include="..\..\res\shader\normalVisualize.fs" />
+    <None Include="..\..\res\shader\normalVisualize.gs" />
+    <None Include="..\..\res\shader\normalVisualize.vs" />
     <None Include="..\..\res\shader\Phong.fs" />
     <None Include="..\..\res\shader\Phong.vs" />
+    <None Include="..\..\res\shader\PostProcessing\blur.fs" />
+    <None Include="..\..\res\shader\PostProcessing\colorReverse.fs" />
+    <None Include="..\..\res\shader\PostProcessing\edgeDetection.fs" />
+    <None Include="..\..\res\shader\PostProcessing\grayscale.fs" />
+    <None Include="..\..\res\shader\PostProcessing\screenShader.fs" />
+    <None Include="..\..\res\shader\PostProcessing\screenShader.vs" />
+    <None Include="..\..\res\shader\PostProcessing\sharpen.fs" />
+    <None Include="..\..\res\shader\SingleColor.fs" />
+    <None Include="..\..\res\shader\SingleColor.gs" />
+    <None Include="..\..\res\shader\SingleColor.vs" />
+    <None Include="..\..\res\shader\skybox.fs" />
+    <None Include="..\..\res\shader\skybox.vs" />
+    <None Include="..\..\res\shader\textureShader.fs" />
+    <None Include="..\..\res\shader\textureShader.vs" />
     <None Include="..\..\res\shader\vertexShader.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

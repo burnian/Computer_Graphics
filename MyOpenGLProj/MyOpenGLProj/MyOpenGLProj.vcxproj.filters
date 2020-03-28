@@ -15,47 +15,164 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Library\src\glad.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="IAlgorithm.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="stb_image.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="LightingTest.cpp">
+    <ClCompile Include="..\..\Library\src\glad.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MSAATest.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="Shader.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="stb_image.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
+    <ClInclude Include="utils.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\res\shader\2DAttribDivisor.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\2DAttribDivisor.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\2DInstancing.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\2DInstancing.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\asteroidField.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\asteroidField.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\cubemap.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\cubemap.vs">
+      <Filter>资源文件</Filter>
+    </None>
     <None Include="..\..\res\shader\fragmentShader.fs">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="..\..\res\shader\lightingShader.fs">
+    <None Include="..\..\res\shader\geometry.fs">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="..\..\res\shader\lightingShader.vs">
+    <None Include="..\..\res\shader\geometry.gs">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="..\..\res\shader\vertexShader.vs">
+    <None Include="..\..\res\shader\geometry.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\glass.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\glass.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\Gouraud.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\Gouraud.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\LampShader.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\LampShader.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\metal.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\metal.gs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\metal.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\ModelLoading.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\ModelLoading.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\normalVisualize.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\normalVisualize.gs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\normalVisualize.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\Phong.fs">
       <Filter>资源文件</Filter>
     </None>
     <None Include="..\..\res\shader\Phong.vs">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="..\..\res\shader\Phong.fs">
+    <None Include="..\..\res\shader\SingleColor.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\SingleColor.gs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\SingleColor.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\skybox.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\skybox.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\textureShader.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\textureShader.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\vertexShader.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\PostProcessing\blur.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\PostProcessing\colorReverse.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\PostProcessing\edgeDetection.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\PostProcessing\grayscale.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\PostProcessing\screenShader.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\PostProcessing\screenShader.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\PostProcessing\sharpen.fs">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>

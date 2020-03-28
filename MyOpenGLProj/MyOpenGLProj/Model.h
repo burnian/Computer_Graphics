@@ -30,7 +30,7 @@ public:
 	//@param2 一次draw call 调用，绘制model 数量
 	//@param3 可使用的纹理单元起始编号
 	void Draw(const Shader &shader, GLuint amount = 1, GLuint texUnitOffset = 0) {
-		for (Mesh mesh : meshes)
+		for (Mesh &mesh : meshes)
 			mesh.Draw(shader, amount, texUnitOffset);
 	};
 
