@@ -1,13 +1,15 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 02/18/2020, 17:32
-*@Last Modify: 03/08/2020, 13:26
+*@Last Modify: 03/29/2020, 16:42
 *@Desc: 通用工具函數
 *********************************************************/
 #pragma once
 #include <glad/glad.h> 
 #include "stb_image.h" // 一个流行的图片加载库
 #include <iostream>
+#include <vector>
+#include <string>
 
 namespace utils {
 	// stbi_set_flip_vertically_on_load(isVerFlip); 纹理翻转
@@ -116,6 +118,20 @@ namespace utils {
 		stbi_image_free(data);
 
 		return textureID;
+	}
+
+	// uniform block object to store projection
+	void ConfigureUBO(const glm::mat4 &projection) {
+		// uniform block object
+		GLuint mat4size = sizeof(glm::mat4);
+		GLuint UBOMatrices;
+		glGenBuffers(1, &UBOMatrices);
+		glBindBuffer(GL_UNIFORM_BUFFER, UBOMatrices);
+		glBufferData(GL_UNIFORM_BUFFER, mat4size, NULL, GL_STATIC_DRAW);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, mat4size, glm::value_ptr(projection));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		// 0号binding point指向UBO的0到mat4的这块区域
+		glBindBufferRange(GL_UNIFORM_BUFFER, 0, UBOMatrices, 0, mat4size);
 	}
 
 }

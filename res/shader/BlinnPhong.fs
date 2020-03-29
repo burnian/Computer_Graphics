@@ -61,9 +61,9 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 towardView){
     vec3 towardLight = normalize(-light.direction);
     // diffuse shading 与观察者位置无关
     float diffStrength = max(dot(normal, towardLight), 0.0); // 光照强度参数
-    // specular shading 与观察者位置相关
-    vec3 reflectDir = reflect(-towardLight, normal);
-    float specStrength = pow(max(dot(towardView, reflectDir), 0.0), material.shininess);
+    // specular shading 与观察者位置相关，这里和Phong 不同
+	vec3 halfwayDir = normalize(towardLight + towardView);
+	float specStrength = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
     // combine results
     vec3 ambient = light.ambient * texture(material.diffuse, TexCoords).rgb;
     vec3 diffuse = light.diffuse * diffStrength * texture(material.diffuse, TexCoords).rgb;
@@ -76,9 +76,9 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 towardView
     vec3 towardLight = normalize(light.position - fragPos);
     // diffuse shading
     float diffStrength = max(dot(normal, towardLight), 0.0);
-    // specular shading
-    vec3 reflectDir = reflect(-towardLight, normal);
-    float specStrength = pow(max(dot(towardView, reflectDir), 0.0), material.shininess);
+	// specular shading 与观察者位置相关，这里和Phong 不同
+	vec3 halfwayDir = normalize(towardLight + towardView);
+	float specStrength = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
     // 距离衰减
     float dist = length(light.position - fragPos);
     float attenuation = 1.0 / (light.constant + light.linear * dist + light.quadratic * dist * dist);    
@@ -94,9 +94,9 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 towardView){
 	vec3 towardLight = normalize(light.position - fragPos);
     // diffuse shading
 	float diffStrength = max(dot(normal, towardLight), 0.0);
-    // specular shading
-	vec3 reflectDir = reflect(-towardLight, normal);
-	float specStrength = pow(max(dot(towardView, reflectDir), 0.0), material.shininess);
+	// specular shading 与观察者位置相关，这里和Phong 不同
+	vec3 halfwayDir = normalize(towardLight + towardView);
+	float specStrength = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
 	// 距离衰减
 	float dist = length(light.position - fragPos);
 	float attenuation = 1.0 / (light.constant + light.linear * dist + light.quadratic * dist * dist);
@@ -129,8 +129,8 @@ void main() {
 }
 
 /*
-冯着色算法对光照的计算都是在片元着色器中进行的。
-观察结果：模型表面的高光分布自然，呈光源的形状。
+布林-冯着色算法和冯着色算法的主要差异就在于高光部分，布林-冯是用角平分线向量和normal取点积，冯是出射向量和观察向量取点积
+观察结果：模型表面的高光分布比冯更自然，冯在远处高光为0，而布林-冯则处处大于0。
 优势：模型所有的插值中间点的颜色都是基于物理光照来计算的，而不是顶点颜色的插值，更加真实自然。
 劣势：需要对大量中间点进行光照计算。
 */

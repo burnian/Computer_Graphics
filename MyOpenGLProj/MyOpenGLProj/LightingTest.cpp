@@ -1,8 +1,8 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 01/30/2020, 13:39
-*@Last Modify: 02/16/2020, 11:11
-*@Desc: ...
+*@Last Modify: 03/29/2020, 16:41
+*@Desc: 光照测试
 *********************************************************/
 #include <glad/glad.h> 
 #include <GLFW/glfw3.h>
@@ -18,9 +18,10 @@
 #include <iostream>
 
 
+//--------------------------
 // 全局设置
-const GLfloat SCR_WIDTH = 800.0f;
-const GLfloat SCR_HEIGHT = 600.0f;
+const GLfloat SCR_WIDTH = 1280.0f;
+const GLfloat SCR_HEIGHT = 720.0f;
 const GLfloat NEAR_PLANE = 0.1f;
 const GLfloat FAR_PLANE = 100.0f;
 // 帧数校正参数
@@ -31,8 +32,10 @@ Camera camera(glm::vec3(-2.0f, 0.0f, 5.0f), glm::vec3(0.0f, 1.0f, 0.0f), -60.0f)
 glm::mat4 projection = glm::perspective(glm::radians(camera.fov), SCR_WIDTH / SCR_HEIGHT, NEAR_PLANE, FAR_PLANE);
 // 灯光
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+bool spotLightOn = true;
+bool isSpotBtnReleased = true;
 
-
+//--------------------------
 void ProcessInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
@@ -44,6 +47,14 @@ void ProcessInput(GLFWwindow* window) {
 		camera.ProcessKeyboard(Camera::LEFT, deltaTime);
 	else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		camera.ProcessKeyboard(Camera::RIGHT, deltaTime);
+	// 聚光灯开关
+	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && isSpotBtnReleased) {
+		spotLightOn = !spotLightOn;
+		isSpotBtnReleased = false;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE && !isSpotBtnReleased) {
+		isSpotBtnReleased = true;
+	}
 }
 
 // 鼠标操作参数
@@ -64,11 +75,12 @@ void MouseCallback(GLFWwindow* window, GLdouble xpos, GLdouble ypos) {
 }
 
 
+//--------------------------
 GLint main() {
 	// 初始化GLFW
 	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);//opengl 主版本号设置为3
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);//opengl 次版本号
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);// opengl 主版本号设置为3
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);// opengl 次版本号
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);//告诉GLFW我们使用的是核心模式
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
@@ -97,7 +109,47 @@ GLint main() {
 		glViewport(0, 0, w, h);
 	});
 
-	// 加载模型顶点
+	//--------------------------
+	// 开启深度测试
+	glEnable(GL_DEPTH_TEST);
+
+	// 开启线框模式
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	//--------------------------
+	// uniform block object
+	utils::ConfigureUBO(projection);
+
+	//--------------------------
+	// plane
+	float planeVertices[] = {
+		// positions            // normals         // texcoords
+		 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+		-10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+		-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+
+		 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+		-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+		 10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
+	};
+	GLuint planeVAO, planeVBO;
+	glGenVertexArrays(1, &planeVAO);
+	glGenBuffers(1, &planeVBO);
+	glBindVertexArray(planeVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
+	glBindVertexArray(0);
+
+	GLuint planeTexture = utils::LoadTexture("../../res/texture/wood.png");
+
+	//--------------------------
+	// randomly placed containers
 	const GLfloat vertices[] = {
 		// positions          // normals           // texture coords
 		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
@@ -184,29 +236,39 @@ GLint main() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 
-	// 加载纹理贴图
-	glActiveTexture(GL_TEXTURE0);
-	LoadTexture("../../res/texture/container2.png");
-	
-	glActiveTexture(GL_TEXTURE1);
-	LoadTexture("../../res/texture/container2_specular.png");
-
-	// 自发光贴图
+	GLuint containerTexture = utils::LoadTexture("../../res/texture/container2.png");
+	GLuint specularTexture = utils::LoadTexture("../../res/texture/container2_specular.png");
 	//glActiveTexture(GL_TEXTURE2);
-	//LoadTexture("../../res/texture/matrix.jpg");
+	//LoadTexture("../../res/texture/matrix.jpg"); // 自发光贴图
 
-	// 物体shader
+	//--------------------------
+	Shader blinnPhongShader("../../res/shader/BlinnPhong.vs", "../../res/shader/BlinnPhong.fs");
+	blinnPhongShader.Use();
+	blinnPhongShader.SetInt("material.diffuse", 0);
+	blinnPhongShader.SetInt("material.specular", 0);
+	blinnPhongShader.SetFloat("material.shininess", 32.0f);
+	blinnPhongShader.SetupDirLight(); // 平行光
+	blinnPhongShader.TurnOnSpotLight(); // 聚光灯
+	// 点光源
+	for (GLint i = 0; i < 4; i++) {
+		blinnPhongShader.SetVec3("pointLights[" + std::to_string(i) + "].position", pointLightPositions[i]);
+		blinnPhongShader.SetVec3("pointLights[" + std::to_string(i) + "].ambient", 0.05f, 0.05f, 0.05f);
+		blinnPhongShader.SetVec3("pointLights[" + std::to_string(i) + "].diffuse", 0.8f, 0.8f, 0.8f);
+		blinnPhongShader.SetVec3("pointLights[" + std::to_string(i) + "].specular", 1.0f, 1.0f, 1.0f);
+		blinnPhongShader.SetFloat("pointLights[" + std::to_string(i) + "].constant", 1.0f); // 有效光照衰减范围50
+		blinnPhongShader.SetFloat("pointLights[" + std::to_string(i) + "].linear", 0.09f);
+		blinnPhongShader.SetFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.032f);
+	}
+
+	// shader
 	Shader objectShader("../../res/shader/Phong.vs", "../../res/shader/Phong.fs");
-	objectShader.Use(); // 必须先激活shader，uniform的赋值才有效
+	objectShader.Use();
 	objectShader.SetInt("material.diffuse", 0);
 	objectShader.SetInt("material.specular", 1);
 	//objectShader.SetInt("material.emission", 2); // 自发光贴图
 	objectShader.SetFloat("material.shininess", 32.0f);
-	// 平行光
-	objectShader.SetVec3("dirLight.direction", 1.0f, 1.0f, 0.0f);
-	objectShader.SetVec3("dirLight.ambient", 0.1f, 0.1f, 0.1f);
-	objectShader.SetVec3("dirLight.diffuse", 1.0f, 1.0f, 1.0f);
-	objectShader.SetVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
+	objectShader.SetupDirLight(); // 平行光
+	objectShader.TurnOnSpotLight(); // 聚光灯
 	// 点光源
 	for (int i = 0; i < 4; i++) {
 		objectShader.SetVec3("pointLights[" + std::to_string(i) + "].position", pointLightPositions[i]);
@@ -217,33 +279,21 @@ GLint main() {
 		objectShader.SetFloat("pointLights[" + std::to_string(i) + "].linear", 0.09f);
 		objectShader.SetFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.032f);
 	}
-	// 聚光灯
-	objectShader.SetFloat("spotLight.innerCos", glm::cos(glm::radians(12.5f)));
-	objectShader.SetFloat("spotLight.outerCos", glm::cos(glm::radians(15.0f)));
-	objectShader.SetVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-	objectShader.SetVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-	objectShader.SetVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-	objectShader.SetFloat("spotLight.constant", 1.0f); // 有效光照衰减范围50
-	objectShader.SetFloat("spotLight.linear", 0.09f);
-	objectShader.SetFloat("spotLight.quadratic", 0.032f);
 
-	// 灯光shader
+	//
 	Shader lightingShader("../../res/shader/LampShader.vs", "../../res/shader/LampShader.fs");
 	lightingShader.Use();
 	lightingShader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
 
-	// 开启深度测试
-	glEnable(GL_DEPTH_TEST);
-
-	// 开启线框模式
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-	// 鼠标设置
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // 隐藏鼠标
+	//--------------------------
+	// mouse settings
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // hide mouse
 	glfwSetCursorPosCallback(window, MouseCallback);
-	//glfwSetScrollCallback(window, ScrollCallback);
+	// glfwSetScrollCallback(window, ScrollCallback);
 
-	// 渲染循环
+	//--------------------------
+	// render loop
+	glm::mat4 model;
 	while (!glfwWindowShouldClose(window)) {
 		// 输入
 		ProcessInput(window);
@@ -257,21 +307,14 @@ GLint main() {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
+		//--------------------------
+		glm::mat4 viewMat = camera.GetViewMatrix();
+
+		// 灯光绕定点旋转
 		//double sita = glm::radians(sin(currentFrame) * 180);
 		//lightPos.x = cos(sita);
 		//lightPos.z = sin(sita);
-
-		// cube
-		objectShader.Use();
-		objectShader.SetVec3("viewPos", camera.position);
-		objectShader.SetMat4("model", glm::mat4(1.0f));
-		objectShader.SetMat4("view", camera.GetViewMatrix());
-		objectShader.SetMat4("projection", projection);
-
-		// 聚光灯
-		objectShader.SetVec3("spotLight.position", camera.position);
-		objectShader.SetVec3("spotLight.direction", camera.front);
-
+		// 灯光变色
 		//glm::vec3 lightColor;
 		//lightColor.x = fmax(sin(currentFrame * 2.0f), 0.0f);
 		//lightColor.y = fmax(sin(currentFrame * 0.7f), 0.0f);
@@ -279,35 +322,71 @@ GLint main() {
 		//glm::vec3 diffuseColor = lightColor * glm::vec3(0.9f);
 		//glm::vec3 ambientColor = diffuseColor * glm::vec3(0.7f);
 
-		// render the cube
-		glBindVertexArray(cubeVAO);
-		for (int i = 0; i < 10; i++) {
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, cubePositions[i]);
-			model = glm::rotate(model, glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
-			objectShader.SetMat4("model", model);
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
+		//--------------------------
+		// plane
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, planeTexture);
+		glBindVertexArray(planeVAO);
 
+		blinnPhongShader.Use();// 左边
+		blinnPhongShader.SetInt("spotLightOn", spotLightOn);
+		blinnPhongShader.SetVec3("viewPos", camera.position);
+		blinnPhongShader.SetMat4("view", viewMat);
+		blinnPhongShader.SetVec3("spotLight.position", camera.position);
+		blinnPhongShader.SetVec3("spotLight.direction", camera.GetFront());
+		model = glm::mat4(1.0f);
+		model = glm::rotate(model, glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(0.0f, -10.0f, -10.0f));
+		blinnPhongShader.SetMat4("model", model);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		objectShader.Use();// 右边
+		objectShader.SetInt("spotLightOn", spotLightOn);
+		objectShader.SetVec3("viewPos", camera.position);
+		objectShader.SetMat4("view", viewMat);
+		objectShader.SetVec3("spotLight.position", camera.position);
+		objectShader.SetVec3("spotLight.direction", camera.GetFront());
+		model = glm::mat4(1.0f);
+		model = glm::rotate(model, glm::radians(-45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(0.0f, -10.0f, 10.0f));
+		objectShader.SetMat4("model", model);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		//--------------------------
+		// cube
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, containerTexture);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, specularTexture);
+		//glBindVertexArray(cubeVAO);
+		//objectShader.Use();
+		//objectShader.SetInt("spotLightOn", spotLightOn);
+		//objectShader.SetVec3("viewPos", camera.position);
+		//objectShader.SetMat4("view", viewMat);
+		//objectShader.SetVec3("spotLight.position", camera.position);
+		//objectShader.SetVec3("spotLight.direction", camera.GetFront());
+		//for (GLint i = 0; i < 10; i++) {
+		//	glm::mat4 model = glm::mat4(1.0f);
+		//	model = glm::translate(model, cubePositions[i]);
+		//	model = glm::rotate(model, glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
+		//	objectShader.SetMat4("model", model);
+		//	glDrawArrays(GL_TRIANGLES, 0, 36);
+		//}
+
+		//--------------------------
 		// lamp
-		lightingShader.Use();
-		//glm::mat4 model = glm::mat4(1.0f);
-		//model = glm::translate(model, lightPos);
-		//model = glm::scale(model, glm::vec3(0.2f));
-		//lightingShader.SetMat4("model", model);
-		lightingShader.SetMat4("view", camera.GetViewMatrix());
-		lightingShader.SetMat4("projection", projection);
+		//lightingShader.Use();
+		//lightingShader.SetMat4("view", viewMat);
+		//glBindVertexArray(lightVAO);
+		//for (GLint i = 0; i < 4; i++) {
+		//	glm::mat4 model = glm::mat4(1.0f);
+		//	model = glm::translate(model, pointLightPositions[i]);
+		//	model = glm::scale(model, glm::vec3(0.2f));
+		//	lightingShader.SetMat4("model", model);
+		//	glDrawArrays(GL_TRIANGLES, 0, 36);
+		//}
 
-		// render the lamp
-		glBindVertexArray(lightVAO);
-		for (int i = 0; i < 4; i++) {
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, pointLightPositions[i]);
-			model = glm::scale(model, glm::vec3(0.2f));
-			lightingShader.SetMat4("model", model);
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
-
+		//--------------------------
 		// 交换缓冲，检查并调用事件
 		glfwSwapBuffers(window);
 		glfwPollEvents();

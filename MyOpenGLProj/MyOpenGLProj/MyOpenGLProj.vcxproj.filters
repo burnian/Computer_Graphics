@@ -21,7 +21,7 @@
     <ClCompile Include="..\..\Library\src\glad.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="MSAATest.cpp">
+    <ClCompile Include="LightingTest.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -173,6 +173,12 @@
       <Filter>资源文件</Filter>
     </None>
     <None Include="..\..\res\shader\PostProcessing\sharpen.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\BlinnPhong.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\BlinnPhong.vs">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>

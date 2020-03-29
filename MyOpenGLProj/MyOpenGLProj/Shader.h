@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 08/30/2019, 13:36
-*@Last Modify: 03/24/2020, 00:22
+*@Last Modify: 03/29/2020, 16:41
 *@Desc: ×ÅÉ«Æ÷
 *********************************************************/
 #pragma once
@@ -104,7 +104,7 @@ public:
 	void SetupDirLight() {
 		Use();
 		SetVec3("dirLight.direction", 1.0f, 1.0f, 0.0f);
-		SetVec3("dirLight.ambient", 1.0f, 1.0f, 1.0f);
+		SetVec3("dirLight.ambient", 0.1f, 0.1f, 0.1f);
 		SetVec3("dirLight.diffuse", 1.0f, 1.0f, 1.0f);
 		SetVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
 	}
