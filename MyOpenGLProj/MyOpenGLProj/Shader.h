@@ -101,10 +101,10 @@ public:
 	};
 
 	// 打开平行光
-	void SetupDirLight() {
+	void SetupDirLight(glm::vec3 dir = glm::vec3(1.0f, 1.0f, 0.0f)) {
 		Use();
-		SetVec3("dirLight.direction", 1.0f, 1.0f, 0.0f);
-		SetVec3("dirLight.ambient", 0.1f, 0.1f, 0.1f);
+		SetVec3("dirLight.direction", dir);
+		SetVec3("dirLight.ambient", 0.5f, 0.5f, 0.5f);
 		SetVec3("dirLight.diffuse", 1.0f, 1.0f, 1.0f);
 		SetVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
 	}

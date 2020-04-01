@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 02/17/2020, 14:48
-*@Last Modify: 03/20/2020, 22:48
+*@Last Modify: 04/01/2020, 14:12
 *@Desc: 添加第三方库分两步：
 *		1.能让项目找到库文件（项目属性页->VC++目录->包含目录，库目录->分别添加include路径和lib路径）；
 *		2.将.lib文件链接到项目（项目属性页->链接器->输入->附加依赖项->添加对应.lib文件）；
@@ -304,11 +304,11 @@ GLint main() {
 		model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f)); // translate it down so it's at the center of the scene
 		model = glm::scale(model, glm::vec3(0.2f));	// it's a bit too big for our scene, so scale it down
 		modelShader.SetMat4("model", model);
-		ourModel.Draw(modelShader, 1); // 这里填1是因为0号texture unit已经被skyboxTexture占用了，所以模型纹理从1号开始征用texture unit
+		ourModel.Draw(modelShader); // 这里填1是因为0号texture unit已经被skyboxTexture占用了，所以模型纹理从1号开始征用texture unit
 		// nanosuit normal
 		normalShader.Use();
 		normalShader.SetMat4("model", model);
-		ourModel.Draw(normalShader, 1);
+		ourModel.Draw(normalShader);
 		
 		// explode nanosuit
 		glActiveTexture(GL_TEXTURE0);
@@ -321,7 +321,7 @@ GLint main() {
 		model = glm::translate(model, glm::vec3(-3.0f, -0.5f, 0.0f)); // translate it down so it's at the center of the scene
 		model = glm::scale(model, glm::vec3(0.2f));	// it's a bit too big for our scene, so scale it down
 		modelExplodeShader.SetMat4("model", model);
-		ourModel.Draw(modelExplodeShader, 1); // 这里填1是因为0号texture unit已经被skyboxTexture占用了，所以模型纹理从1号开始征用texture unit
+		ourModel.Draw(modelExplodeShader); // 这里填1是因为0号texture unit已经被skyboxTexture占用了，所以模型纹理从1号开始征用texture unit
 
 		// glass nanosuit
 		glActiveTexture(GL_TEXTURE0);
@@ -333,7 +333,7 @@ GLint main() {
 		model = glm::translate(model, glm::vec3(2.0f, -0.5f, 0.0f)); // translate it down so it's at the center of the scene
 		model = glm::scale(model, glm::vec3(0.2f));	// it's a bit too big for our scene, so scale it down
 		modelTransShader.SetMat4("model", model);
-		ourModel.Draw(modelTransShader, 1); // 这里填1是因为0号texture unit已经被skyboxTexture占用了，所以模型纹理从1号开始征用texture unit
+		ourModel.Draw(modelTransShader); // 这里填1是因为0号texture unit已经被skyboxTexture占用了，所以模型纹理从1号开始征用texture unit
 
 		
 		// 绘制选中特效

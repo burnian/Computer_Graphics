@@ -181,5 +181,23 @@
     <None Include="..\..\res\shader\BlinnPhong.vs">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="..\..\res\shader\BlinnPhongShadow.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\BlinnPhongShadow.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\depthMap.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\depthMap.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\depthMapDebug.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\..\res\shader\depthMapDebug.vs">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>

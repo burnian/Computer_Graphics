@@ -150,6 +150,10 @@
     <None Include="..\..\res\shader\BlinnPhong.vs" />
     <None Include="..\..\res\shader\cubemap.fs" />
     <None Include="..\..\res\shader\cubemap.vs" />
+    <None Include="..\..\res\shader\depthMap.fs" />
+    <None Include="..\..\res\shader\depthMap.vs" />
+    <None Include="..\..\res\shader\depthMapDebug.fs" />
+    <None Include="..\..\res\shader\depthMapDebug.vs" />
     <None Include="..\..\res\shader\fragmentShader.fs" />
     <None Include="..\..\res\shader\geometry.fs" />
     <None Include="..\..\res\shader\geometry.gs" />
@@ -177,6 +181,8 @@
     <None Include="..\..\res\shader\PostProcessing\screenShader.fs" />
     <None Include="..\..\res\shader\PostProcessing\screenShader.vs" />
     <None Include="..\..\res\shader\PostProcessing\sharpen.fs" />
+    <None Include="..\..\res\shader\BlinnPhongShadow.fs" />
+    <None Include="..\..\res\shader\BlinnPhongShadow.vs" />
     <None Include="..\..\res\shader\SingleColor.fs" />
     <None Include="..\..\res\shader\SingleColor.gs" />
     <None Include="..\..\res\shader\SingleColor.vs" />

@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 01/28/2020, 13:36
-*@Last Modify: 03/08/2020, 13:26
+*@Last Modify: 04/02/2020, 01:48
 *@Desc: 相机
 *********************************************************/
 #pragma once
@@ -30,7 +30,7 @@ public:
 		RIGHT
 	};
 
-	// Constructor with vectors
+	// 坐标皆位于world space
 	Camera(glm::vec3 position = glm::vec3(0.0f), glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f), GLfloat yaw = YAW, GLfloat pitch = PITCH)
 		: front(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(SPEED), mouseSensitivity(SENSITIVITY), zoomSensitivity(ZOOM), fov(FOV)
 	{
@@ -54,7 +54,7 @@ public:
 
 	// Returns the view matrix calculated using Euler Angles and the LookAt Matrix
 	glm::mat4 GetViewMatrix() {
-		//return glm::lookAt(position, position + front, up);
+		//return glm::lookAt(position, position + front, up); // 这里的坐标都是world space，up为方向向量
 
 		// Custom implementation of the LookAt function
 		// Create translation and rotation matrix
