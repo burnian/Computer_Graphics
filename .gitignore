@@ -1,46 +1,5 @@
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
-# Third Party Library
-/glfw-3.3
-/glm
-
-# Customs
-/*/.vs
-/*/.vscode
+/LearnRes
+/x64
 /Debug
-/*/Debug
-/*/*/Debug
-/*/*/*/Debug
-/*/*/Release
-/learnRes
-/assimp-5.0.0
+/.vs
+/.vscode
