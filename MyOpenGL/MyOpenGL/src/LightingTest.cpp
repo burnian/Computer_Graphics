@@ -263,7 +263,7 @@ GLint main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		BPSShader.Use();
-		BPSShader.SetupDirLight(vec3(0.0f) - dirLightPos);
+		BPSShader.SetupDirLight(vec3(0.0f) - dirLightPos, 0.3f);
 		BPSShader.SetMat4("lightSpaceMat", dirLightSpaceMat);
 		BPSShader.SetVec3("viewPos", camera.position);
 		BPSShader.SetMat4("projection", projection);

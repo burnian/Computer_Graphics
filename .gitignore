@@ -1,5 +1,5 @@
 /LearnRes
-/x64
-/Debug
-/.vs
-/.vscode
+x64
+Debug
+.vs
+.vscode

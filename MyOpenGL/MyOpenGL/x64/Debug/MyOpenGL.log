@@ -1,5 +1,4 @@
-﻿  glad.c
-  LightingTest.cpp
+﻿  LightingTest.cpp
 e:\myrepos\cpp\computergraphics\myopengl\myopengl\src\lightingtest.cpp(63): warning C4244: '=': conversion from 'GLdouble' to 'GLfloat', possible loss of data
 e:\myrepos\cpp\computergraphics\myopengl\myopengl\src\lightingtest.cpp(64): warning C4244: '=': conversion from 'GLdouble' to 'GLfloat', possible loss of data
 e:\myrepos\cpp\computergraphics\myopengl\myopengl\src\lightingtest.cpp(67): warning C4244: 'initializing': conversion from 'GLdouble' to 'GLfloat', possible loss of data
