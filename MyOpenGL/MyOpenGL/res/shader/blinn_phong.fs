@@ -56,12 +56,12 @@ out vec4 FragColor;
 uniform vec3 viewPos;
 uniform bool spotLightOn;
 
-// 平行光
+// directional light
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 towardView){
     vec3 towardLight = normalize(-light.direction);
-    // diffuse shading 与观察者位置无关
-    float diffStrength = max(dot(normal, towardLight), 0.0); // 光照强度参数
-    // specular shading 与观察者位置相关，这里和Phong 不同
+    // diffuse shading is independent of viewer's position
+    float diffStrength = max(dot(normal, towardLight), 0.0);
+    // specular shading is related to the viewer's position, which is different with Phong
 	vec3 halfwayDir = normalize(towardLight + towardView);
 	float specStrength = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
     // combine results
@@ -71,15 +71,15 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 towardView){
     return ambient + diffuse + specular;
 }
 
-// 点光源
+// point light
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 towardView) {
     vec3 towardLight = normalize(light.position - fragPos);
-    // diffuse shading
+    // diffuse shading is independent of viewer's position
     float diffStrength = max(dot(normal, towardLight), 0.0);
-	// specular shading 与观察者位置相关，这里和Phong 不同
+	// specular shading is related to the viewer position, which is different with Phong
 	vec3 halfwayDir = normalize(towardLight + towardView);
 	float specStrength = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
-    // 距离衰减
+    // distance attenuation
     float dist = length(light.position - fragPos);
     float attenuation = 1.0 / (light.constant + light.linear * dist + light.quadratic * dist * dist);    
     // combine results
@@ -89,19 +89,19 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 towardView
     return ambient + diffuse + specular;
 }
 
-// 聚光灯
+// spot light
 vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 towardView){
 	vec3 towardLight = normalize(light.position - fragPos);
-    // diffuse shading
+    // diffuse shading is independent of viewer's position
 	float diffStrength = max(dot(normal, towardLight), 0.0);
-	// specular shading 与观察者位置相关，这里和Phong 不同
+	// specular shading is related to the viewer position, which is different with Phong
 	vec3 halfwayDir = normalize(towardLight + towardView);
 	float specStrength = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
-	// 距离衰减
+    // distance attenuation
 	float dist = length(light.position - fragPos);
 	float attenuation = 1.0 / (light.constant + light.linear * dist + light.quadratic * dist * dist);
-	// 边缘衰减，非线性，cosine
-	float cosTheta = dot(towardLight, normalize(-light.direction)); // 光线和聚光灯方向夹角的余弦值
+	// non-linear edge attenuation, in cosine type
+	float cosTheta = dot(towardLight, normalize(-light.direction));
 	float epsilon = light.innerCos - light.outerCos;
 	float intensity = clamp((cosTheta - light.outerCos) / epsilon, 0.0, 1.0);    
 	// combine results
@@ -114,15 +114,15 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 towardView){
 void main() {
 	vec3 norm = normalize(Normal);
 	vec3 towardView = normalize(viewPos - FragPos);
-	// phase 1: Directional lighting
+	// phase 1: directional light
 	vec3 result = CalcDirLight(dirLight, norm, towardView);
-	// phase 2: Point lights
+	// phase 2: point lights
 	for(int i = 0; i < NR_POINT_LIGHTS; i++)
 		result += CalcPointLight(pointLights[i], norm, FragPos, towardView);
-	// phase 3: Spot light
+	// phase 3: spot light
 	if(spotLightOn)
 		result += CalcSpotLight(spotLight, norm, FragPos, towardView);
-	// phase 4: emission 自发光
+	// phase 4: emission, self-luminous
 	//result += texture(material.emission, TexCoords).rgb;
 
 	FragColor = vec4(result, 1.0);
