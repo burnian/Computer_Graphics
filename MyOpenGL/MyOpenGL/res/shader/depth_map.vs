@@ -10,5 +10,5 @@ void main()
 }
 
 /*
-单纯用来计算对应视角坐标系下的深度贴图
+just for computing the shadow depth texture in the corresponding perspective.
 */

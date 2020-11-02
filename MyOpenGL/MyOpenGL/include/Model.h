@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 02/17/2020, 20:38
-*@Last Modify: 03/26/2020, 01:29
+*@Last Modify: 10/29/2020, 16:33
 *@Desc: model
 *********************************************************/
 #pragma once
@@ -32,7 +32,7 @@ public:
 	void Draw(const Shader &shader, GLuint amount = 1, GLuint texUnitOffset = 0) {
 		for (Mesh &mesh : meshes)
 			mesh.Draw(shader, amount, texUnitOffset);
-	};
+	}
 
 	std::vector<Texture> texturesLoaded;
 	std::vector<Mesh> meshes;
@@ -55,7 +55,7 @@ private:
 		directory = path.substr(0, path.find_last_of('/'));
 
 		ProcessNode(scene->mRootNode, scene);
-	};
+	}
 
 	void ProcessNode(aiNode *node, const aiScene *scene) {
 		// process all the node's meshes (if any)
@@ -67,7 +67,7 @@ private:
 		for (GLuint i = 0; i < node->mNumChildren; i++) {
 			ProcessNode(node->mChildren[i], scene);
 		}
-	};
+	}
 
 	Mesh ProcessMesh(aiMesh *mesh, const aiScene *scene) {
 		std::vector<Vertex> vertices;
@@ -118,7 +118,7 @@ private:
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
 		return Mesh(vertices, indices, textures);
-	};
+	}
 
 	// checks all material textures of a given type and loads the textures if they're not loaded yet.
 	// the required info is returned as a Texture struct.

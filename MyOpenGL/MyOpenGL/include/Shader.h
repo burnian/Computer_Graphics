@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 08/30/2019, 13:36
-*@Last Modify: 03/29/2020, 16:41
+*@Last Modify: 11/02/2020, 22:30
 *@Desc: 着色器
 *********************************************************/
 #pragma once
@@ -54,14 +54,14 @@ public:
 		catch (std::ifstream::failure e) {
 			std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
 		}
-		ID = glCreateProgram();
+		ID_ = glCreateProgram();
 		// 顶点着色器
 		const GLchar* vShaderCode = vertexCode.c_str();
 		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertexShader, 1, &vShaderCode, NULL);// @para2 传递的源码字符串数量
 		glCompileShader(vertexShader);
 		CheckCompileErrors(vertexShader, "VERTEX");
-		glAttachShader(ID, vertexShader);
+		glAttachShader(ID_, vertexShader);
 		glDeleteShader(vertexShader);
 		// 片元着色器
 		const GLchar* fShaderCode = fragmentCode.c_str();
@@ -69,7 +69,7 @@ public:
 		glShaderSource(fragmentShader, 1, &fShaderCode, NULL);
 		glCompileShader(fragmentShader);
 		CheckCompileErrors(fragmentShader, "FRAGMENT");
-		glAttachShader(ID, fragmentShader);
+		glAttachShader(ID_, fragmentShader);
 		glDeleteShader(fragmentShader);
 		// 几何着色器
 		if (geometryPath) {
@@ -78,39 +78,54 @@ public:
 			glShaderSource(geometryShader, 1, &gShaderCode, NULL);
 			glCompileShader(geometryShader);
 			CheckCompileErrors(geometryShader, "GEOMETRY");
-			glAttachShader(ID, geometryShader);
+			glAttachShader(ID_, geometryShader);
 			glDeleteShader(geometryShader);
 		}
 		// 链接顶点和片段着色器到一个着色器程序中，当链接着色器至一个程序的时候，它会把每个着色器的输出链接到下个着色器的输入。当输出和输入不匹配的时候，你会得到一个连接错误。
-		glLinkProgram(ID);
-		CheckCompileErrors(ID, "PROGRAM");
+		glLinkProgram(ID_);
+		CheckCompileErrors(ID_, "PROGRAM");
 	};
 
 	~Shader() {};
 
 	// 激活该shader 程序
 	void Use() {
-		glUseProgram(ID);
+		glUseProgram(ID_);
 	};
 
 	// 把shader程序中的uniform block和binding point关联起来。UB = uniform block
 	//@param name shader中的uniform block名
 	void BindUniformBlock(const std::string &UBName, GLuint UBbindingPoint) {
-		GLuint UBIndex = glGetUniformBlockIndex(ID, UBName.c_str());
-		glUniformBlockBinding(ID, UBIndex, UBbindingPoint);
+		GLuint UBIndex = glGetUniformBlockIndex(ID_, UBName.c_str());
+		glUniformBlockBinding(ID_, UBIndex, UBbindingPoint);
 	};
 
 	// 打开平行光
-	void SetupDirLight(glm::vec3 dir = glm::vec3(1.0f, 1.0f, 0.0f), GLfloat luminance = 1.0f) {
+	void SetDirLight(const glm::vec3& dir, const GLfloat& luminance, const GLint& texUnitIdx = 0) {
 		Use();
 		SetVec3("dirLight.direction", dir);
 		SetVec3("dirLight.ambient", glm::vec3(0.5f) * glm::vec3(luminance));
 		SetVec3("dirLight.diffuse", glm::vec3(1.0f) * glm::vec3(luminance));
 		SetVec3("dirLight.specular", glm::vec3(1.0f) * glm::vec3(luminance));
+		SetInt("dirLight.depthMap", texUnitIdx); // 光照阴影深度纹理
+	}
+
+	// 打开点光源
+	void SetPointLight(const glm::vec3& position, GLfloat farPlane, GLfloat luminance, GLenum depthCubemap = 0) {
+		Use();
+		SetVec3("pointLight.position", position);
+		SetVec3("pointLight.ambient", glm::vec3(0.5f) * glm::vec3(luminance));
+		SetVec3("pointLight.diffuse", glm::vec3(1.0f) * glm::vec3(luminance));
+		SetVec3("pointLight.specular", glm::vec3(1.0f) * glm::vec3(luminance));
+		SetFloat("pointLight.constant", 0.3f); // 有效光照衰减范围50
+		SetFloat("pointLight.linear", 0.09f);
+		SetFloat("pointLight.quadratic", 0.032f);
+		SetFloat("pointLight.farPlane", farPlane);
+		SetInt("pointLight.depthCubemap", depthCubemap); // 光照阴影深度纹理，正方体 cube map
 	}
 
 	// 打开聚光灯
-	void TurnOnSpotLight(GLfloat luminance = 1.0f) {
+	void SetSpotLight(GLfloat luminance = 1.0f) {
 		Use();
 		SetFloat("spotLight.innerCos", glm::cos(glm::radians(12.5f)));
 		SetFloat("spotLight.outerCos", glm::cos(glm::radians(15.0f)));
@@ -129,53 +144,52 @@ public:
 
 	// uniform工具函数
 	void SetBool(const std::string &name, GLboolean value) const {
-		glUniform1i(glGetUniformLocation(ID, name.c_str()), (GLint)value);
+		glUniform1i(glGetUniformLocation(ID_, name.c_str()), (GLint)value);
 	};
 
 	void SetInt(const std::string &name, GLint value) const {
-		glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
+		glUniform1i(glGetUniformLocation(ID_, name.c_str()), value);
 	};
 
 	void SetFloat(const std::string &name, GLfloat value) const {
-		glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+		glUniform1f(glGetUniformLocation(ID_, name.c_str()), value);
 	};
 
 	void SetVec2(const std::string &name, const glm::vec2 &value) const {
-		glUniform2fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+		glUniform2fv(glGetUniformLocation(ID_, name.c_str()), 1, &value[0]);
 	};
 
 	void SetVec2(const std::string &name, GLfloat x, GLfloat y) const {
-		glUniform2f(glGetUniformLocation(ID, name.c_str()), x, y);
+		glUniform2f(glGetUniformLocation(ID_, name.c_str()), x, y);
 	};
 
 	void SetVec3(const std::string &name, const glm::vec3 &value) const {
-		glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+		glUniform3fv(glGetUniformLocation(ID_, name.c_str()), 1, &value[0]);
 	};
 
 	void SetVec3(const std::string &name, GLfloat x, GLfloat y, GLfloat z) const {
-		glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
+		glUniform3f(glGetUniformLocation(ID_, name.c_str()), x, y, z);
 	};
 
 	void SetVec4(const std::string &name, const glm::vec4 &value) const {
-		glUniform4fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+		glUniform4fv(glGetUniformLocation(ID_, name.c_str()), 1, &value[0]);
 	};
 
 	void SetVec4(const std::string &name, GLfloat x, GLfloat y, GLfloat z, GLfloat w) const {
-		glUniform4f(glGetUniformLocation(ID, name.c_str()), x, y, z, w);
+		glUniform4f(glGetUniformLocation(ID_, name.c_str()), x, y, z, w);
 	};
 
+	//@param1 transform 这个uniform 变量的位置
+	//@param2 1个矩阵
+	//@param3 是否需要转置矩阵
+	//@param4 GLM 和OpenGL 储存矩阵数据的方式不一样，所以用GLM的内部方法value_ptr 来对trans 进行转换
 	void SetMat4(const std::string &name, glm::mat4 mat) const {
-		//@param1 transform 这个uniform 变量的位置
-		//@param2 1个矩阵
-		//@param3 是否需要转置矩阵
-		//@param4 GLM 和OpenGL 储存矩阵数据的方式不一样，所以用GLM的内部方法value_ptr 来对trans 进行转换
-		glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
+		glUniformMatrix4fv(glGetUniformLocation(ID_, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
 	};
 
-	GLuint ID;
-
+	GLuint ID_;
 private:
-	void CheckCompileErrors(GLuint shader, const std::string &type) {
+	void CheckCompileErrors(GLuint shader, const std::string& type) {
 		GLint success;
 		GLchar infoLog[1024];
 		if (type != "PROGRAM") {

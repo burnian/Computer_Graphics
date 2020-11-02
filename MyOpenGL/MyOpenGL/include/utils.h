@@ -2,7 +2,7 @@
 *@Author: Burnian Zhou
 *@Create Time: 02/18/2020, 17:32
 *@Last Modify: 10/08/2020, 16:49
-*@Desc: 通用工具函數
+*@Desc: general tool functions
 		NDC(Normalized Device Coordinate)
 *********************************************************/
 #pragma once
@@ -10,13 +10,52 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include "stb_image.h" // 一个流行的图片加载库
+#include "stb_image.h" // a popular image loading library
 
 namespace utils {
-// stbi_set_flip_vertically_on_load(isVerFlip); 纹理翻转
+
+GLFWwindow* InitWindow(const GLint& width, const GLint& height, const GLchar* title) {
+	glfwInit();
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);// opengl major version set to 3
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);// opengl minor version
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // set GLFW to core mode
+	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	// set the number of subsamples for the multisampling antialiasing to 4, glEnable(GL_MULTISAMPLE) is on by default.
+	glfwWindowHint(GLFW_SAMPLES, 4);
+
+#ifdef __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
+#endif
+
+	// last 2 parameters: whether to use full-screen mode, to share context window.
+	GLFWwindow* window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+	if (window == nullptr) {
+		std::cout << "Failed to create GLFW window.\n";
+		glfwTerminate();
+		return nullptr;
+	}
+	glfwMakeContextCurrent(window);
+	// init GLAD
+	//warning：the initialization of GLAD should be after the creation of window.
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+		std::cout << "Failed to initialize GLAD.\n";
+		return nullptr;
+	}
+	//////////////////////////////
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // hide mouse
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE); // back face culling
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // just show the line frame of the polygon.
+	//glEnable(GL_FRAMEBUFFER_SRGB); // gamma correction
+
+	return window;
+}
+
+// stbi_set_flip_vertically_on_load(isVerFlip); // texture flip
 // The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform;
 // FileSystem::getPath("resources/textures/container.jpg").c_str();
-GLuint LoadTexture(GLchar const* path) {
+GLuint LoadTexture(const GLchar* path) {
 	GLuint textureID;
 	//@para1 生成纹理的数量
 	glGenTextures(1, &textureID);
@@ -57,6 +96,11 @@ GLuint LoadTexture(GLchar const* path) {
 	stbi_image_free(data);
 
 	return textureID;
+}
+
+void BindTexture2D(const GLenum& texUnit, const GLchar* path) {
+	glActiveTexture(texUnit);
+	glBindTexture(GL_TEXTURE_2D, LoadTexture(path));
 }
 
 // skybox
@@ -170,14 +214,23 @@ GLuint planeVAO = 0;
 GLuint planeVBO = 0;
 void RenderPlane() {
 	if (planeVAO == 0) {
+		//GLfloat vertices[] = {
+		//	// positions            // normals         // texcoords
+		//	 25.0f,  0.0f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
+		//	-25.0f,  0.0f,  25.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+		//	-25.0f,  0.0f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
+		//	 25.0f,  0.0f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
+		//	-25.0f,  0.0f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
+		//	 25.0f,  0.0f, -25.0f,  0.0f, 1.0f, 0.0f,  25.0f, 25.0f
+		//};
 		GLfloat vertices[] = {
 			// positions            // normals         // texcoords
 			 25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
-			-25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+			 25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,  25.0f, 25.0f,
 			-25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
 			 25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
 			-25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
-			 25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,  25.0f, 25.0f
+			-25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
 		};
 		glGenVertexArrays(1, &planeVAO);
 		glGenBuffers(1, &planeVBO);
