@@ -128,21 +128,36 @@
     <ClInclude Include="include\Mesh.h" />
     <ClInclude Include="include\Model.h" />
     <ClInclude Include="include\Shader.h" />
+    <ClInclude Include="include\ShadowMap.hpp" />
     <ClInclude Include="include\stb_image.h" />
     <ClInclude Include="include\utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\glad.c" />
-    <ClCompile Include="src\LightingTest.cpp" />
+    <ClCompile Include="src\PointLightShadow.cpp" />
     <ClCompile Include="src\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="res\shader\blinn_phong.fs" />
+    <None Include="res\shader\blinn_phong.vs" />
+    <None Include="res\shader\blinn_phong_point_shadow.fs" />
+    <None Include="res\shader\blinn_phong_point_shadow.vs" />
     <None Include="res\shader\blinn_phong_shadow.fs" />
     <None Include="res\shader\blinn_phong_shadow.vs" />
+    <None Include="res\shader\cube_map.fs" />
+    <None Include="res\shader\cube_map.vs" />
+    <None Include="res\shader\depth_cubemap.fs" />
+    <None Include="res\shader\depth_cubemap.gs" />
+    <None Include="res\shader\depth_cubemap.vs" />
     <None Include="res\shader\depth_map.fs" />
     <None Include="res\shader\depth_map.vs" />
     <None Include="res\shader\depth_map_debug.fs" />
     <None Include="res\shader\depth_map_debug.vs" />
+    <None Include="res\shader\geometry.fs" />
+    <None Include="res\shader\geometry.gs" />
+    <None Include="res\shader\geometry.vs" />
+    <None Include="res\shader\lamp.fs" />
+    <None Include="res\shader\lamp.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

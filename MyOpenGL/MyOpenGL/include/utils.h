@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 02/18/2020, 17:32
-*@Last Modify: 10/08/2020, 16:49
+*@Last Modify: 11/04/2020, 23:44
 *@Desc: general tool functions
 		NDC(Normalized Device Coordinate)
 *********************************************************/
@@ -45,7 +45,7 @@ GLFWwindow* InitWindow(const GLint& width, const GLint& height, const GLchar* ti
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // hide mouse
 
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE); // back face culling
+	//glEnable(GL_CULL_FACE); // back face culling
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // just show the line frame of the polygon.
 	//glEnable(GL_FRAMEBUFFER_SRGB); // gamma correction
 
@@ -214,15 +214,6 @@ GLuint planeVAO = 0;
 GLuint planeVBO = 0;
 void RenderPlane() {
 	if (planeVAO == 0) {
-		//GLfloat vertices[] = {
-		//	// positions            // normals         // texcoords
-		//	 25.0f,  0.0f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
-		//	-25.0f,  0.0f,  25.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-		//	-25.0f,  0.0f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
-		//	 25.0f,  0.0f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
-		//	-25.0f,  0.0f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
-		//	 25.0f,  0.0f, -25.0f,  0.0f, 1.0f, 0.0f,  25.0f, 25.0f
-		//};
 		GLfloat vertices[] = {
 			// positions            // normals         // texcoords
 			 25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,

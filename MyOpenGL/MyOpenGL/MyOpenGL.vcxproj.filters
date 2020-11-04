@@ -33,6 +33,9 @@
     <ClInclude Include="include\utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\ShadowMap.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\glad.c">
@@ -41,7 +44,7 @@
     <ClCompile Include="src\stb_image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\LightingTest.cpp">
+    <ClCompile Include="src\PointLightShadow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -62,6 +65,48 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\shader\depth_map_debug.vs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\lamp.fs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\lamp.vs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\geometry.fs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\geometry.gs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\geometry.vs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\cube_map.fs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\cube_map.vs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\depth_cubemap.vs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\depth_cubemap.fs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\depth_cubemap.gs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\blinn_phong.fs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\blinn_phong.vs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\blinn_phong_point_shadow.fs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\blinn_phong_point_shadow.vs">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

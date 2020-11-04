@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
 *@Create Time: 08/30/2019, 13:36
-*@Last Modify: 11/02/2020, 22:30
+*@Last Modify: 11/04/2020, 23:45
 *@Desc: 着色器
 *********************************************************/
 #pragma once
@@ -105,17 +105,17 @@ public:
 		Use();
 		SetVec3("dirLight.direction", dir);
 		SetVec3("dirLight.ambient", glm::vec3(0.5f) * glm::vec3(luminance));
-		SetVec3("dirLight.diffuse", glm::vec3(1.0f) * glm::vec3(luminance));
+		SetVec3("dirLight.diffuse", glm::vec3(0.9f) * glm::vec3(luminance));
 		SetVec3("dirLight.specular", glm::vec3(1.0f) * glm::vec3(luminance));
 		SetInt("dirLight.depthMap", texUnitIdx); // 光照阴影深度纹理
 	}
 
 	// 打开点光源
-	void SetPointLight(const glm::vec3& position, GLfloat farPlane, GLfloat luminance, GLenum depthCubemap = 0) {
+	void SetPointLight(const glm::vec3& position, const GLfloat& farPlane, const GLfloat& luminance, const GLenum& depthCubemap = 0) {
 		Use();
 		SetVec3("pointLight.position", position);
 		SetVec3("pointLight.ambient", glm::vec3(0.5f) * glm::vec3(luminance));
-		SetVec3("pointLight.diffuse", glm::vec3(1.0f) * glm::vec3(luminance));
+		SetVec3("pointLight.diffuse", glm::vec3(0.9f) * glm::vec3(luminance));
 		SetVec3("pointLight.specular", glm::vec3(1.0f) * glm::vec3(luminance));
 		SetFloat("pointLight.constant", 0.3f); // 有效光照衰减范围50
 		SetFloat("pointLight.linear", 0.09f);
@@ -130,7 +130,7 @@ public:
 		SetFloat("spotLight.innerCos", glm::cos(glm::radians(12.5f)));
 		SetFloat("spotLight.outerCos", glm::cos(glm::radians(15.0f)));
 		SetVec3("spotLight.ambient", glm::vec3(0.0f) * glm::vec3(luminance));
-		SetVec3("spotLight.diffuse", glm::vec3(1.0f) * glm::vec3(luminance));
+		SetVec3("spotLight.diffuse", glm::vec3(0.9f) * glm::vec3(luminance));
 		SetVec3("spotLight.specular", glm::vec3(1.0f) * glm::vec3(luminance));
 		SetFloat("spotLight.constant", 1.0f); // 有效光照衰减范围50
 		SetFloat("spotLight.linear", 0.09f);
