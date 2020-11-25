@@ -32,16 +32,52 @@ in VS_OUT {
 
 uniform vec3 viewWPos;
 
+// there are 20 points which belong to a third order cube excludes the 6 face
+// points and the central point.
+vec3 sampleOffsetDirections[20] = vec3[] (
+   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1), 
+   vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
+   vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
+   vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
+   vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
+);
+
 float CalcPointLightShadow(vec3 fragWPos, PointLight light, vec3 normal) {
     vec3 light2Frag = fragWPos - light.position;
-    float closestDepth = texture(light.depthCubemap, light2Frag).r;
-	closestDepth *= light.farPlane;
+//  float closestDepth = texture(light.depthCubemap, light2Frag).r;
+//	closestDepth *= light.farPlane;
 	float currentDepth = length(light2Frag);
-	//float bias = max(0.05 * (1.0 - dot(normal, normalize(-light2Frag))), 0.005);
-	float bias = 0.05;
-	float shadow = currentDepth - bias > closestDepth ? 0.0 : 1.0; 
-
-	return shadow;
+	float bias = max(0.05 * (1.0 - dot(normal, normalize(-light2Frag))), 0.005);
+//  without PCF
+//	float shadow = currentDepth - bias > closestDepth ? 0.0 : 1.0; 
+//  with PCF
+//	float shadow = 0.0;
+//	float samples = 4.0;
+//	float offset = 0.1; // half edge length
+//	float istep = 2 * offset / samples;
+//	for(float x = -offset; x < offset; x += istep) {
+//		for(float y = -offset; y < offset; y += istep) {
+//			for(float z = -offset; z < offset; z += istep) {
+//				float closestDepth = texture(light.depthCubemap, light2Frag + vec3(x, y, z)).r; 
+//				closestDepth *= light.farPlane;   // undo mapping [0,1]
+//				if(currentDepth - bias <= closestDepth)
+//					shadow += 1.0;
+//			}
+//		}
+//	}
+//	return shadow / (samples * samples * samples);
+//  with optimized PCF
+	float shadow = 0.0;
+	int samples = 20;
+	// the closer the viewer to the fragment, the more accurate the sampling.
+	float diskRadius = (1.0 + (length(viewWPos - fragWPos) / light.farPlane)) / 25.0;  
+	for(int i = 0; i < samples; ++i) {
+		float closestDepth = texture(light.depthCubemap, light2Frag + sampleOffsetDirections[i] * diskRadius).r;
+		closestDepth *= light.farPlane;   // undo mapping [0,1]
+		if(currentDepth - bias <= closestDepth)
+			shadow += 1.0;
+	}
+	return shadow / float(samples);
 }
 
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragWPos, vec3 frag2ViewWS, float shadow) {

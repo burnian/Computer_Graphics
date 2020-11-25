@@ -20,3 +20,9 @@ void main()
         EndPrimitive();
     }
 }
+
+/*
+whether to use the geometry shader or rendering the box faces 6 times is depending on the
+type of environment, the specific video card drivers, and plenty of other factors. So we
+should profile both methods to select more efficient one.
+*/
