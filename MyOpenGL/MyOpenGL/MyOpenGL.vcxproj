@@ -134,7 +134,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\glad.c" />
-    <ClCompile Include="src\PointLightShadow.cpp" />
+    <ClCompile Include="src\NormalMapping.cpp" />
     <ClCompile Include="src\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -158,6 +158,11 @@
     <None Include="res\shader\geometry.vs" />
     <None Include="res\shader\lamp.fs" />
     <None Include="res\shader\lamp.vs" />
+    <None Include="res\shader\normalVisualize.fs" />
+    <None Include="res\shader\normalVisualize.gs" />
+    <None Include="res\shader\normalVisualize.vs" />
+    <None Include="res\shader\normal_mapping.fs" />
+    <None Include="res\shader\normal_mapping.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

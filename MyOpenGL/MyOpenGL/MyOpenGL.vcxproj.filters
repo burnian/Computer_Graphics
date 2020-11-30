@@ -44,7 +44,7 @@
     <ClCompile Include="src\stb_image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\PointLightShadow.cpp">
+    <ClCompile Include="src\NormalMapping.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -107,6 +107,21 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\shader\blinn_phong_point_shadow.vs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\normal_mapping.fs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\normal_mapping.vs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\normalVisualize.fs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\normalVisualize.gs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\normalVisualize.vs">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
