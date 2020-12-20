@@ -1,7 +1,7 @@
 /*********************************************************
 *@Author: Burnian Zhou
-*@Create Time: 11/26/2020, 00:15
-*@Last Modify: 11/26/2020, 00:15
+*@Create Time: 12/20/2020, 23:25
+*@Last Modify: 12/20/2020, 23:25
 *@Desc: normal mapping test
 *********************************************************/
 #include <glad/glad.h>
@@ -31,6 +31,7 @@ Camera camera(vec3(-2.0f, 0.0f, 5.0f), vec3(0.0f, 1.0f, 0.0f), -60.0f);
 mat4 projection = perspective(radians(camera.fov), SCR_WIDTH / SCR_HEIGHT, SCR_NEAR, SCR_FAR);
 
 //////////////////////////////
+float heightScale = 0.1f;
 void ProcessInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
@@ -42,6 +43,19 @@ void ProcessInput(GLFWwindow* window) {
 		camera.ProcessKeyboard(Camera::LEFT, deltaTime);
 	else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		camera.ProcessKeyboard(Camera::RIGHT, deltaTime);
+	// increasing the impact of the parallax mapping.
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+		if (heightScale > 0.0f)
+			heightScale -= 0.0005f;
+		else
+			heightScale = 0.0f;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+		if (heightScale < 1.0f)
+			heightScale += 0.0005f;
+		else
+			heightScale = 1.0f;
+	}
 }
 
 //////////////////////////////
@@ -63,7 +77,7 @@ void MouseCallback(GLFWwindow* window, GLdouble xpos, GLdouble ypos) {
 
 //////////////////////////////
 GLint main() {
-	GLFWwindow* window = utils::InitWindow(SCR_WIDTH, SCR_HEIGHT, "NormalMapping");
+	GLFWwindow* window = utils::InitWindow(SCR_WIDTH, SCR_HEIGHT, "ParallaxMapping");
 	if (window == nullptr) return -1;
 
 	// callback binding
@@ -72,14 +86,16 @@ GLint main() {
 	// glfwSetScrollCallback(window, ScrollCallback); // callback for scrolling wheel.
 
 	//////////////////////////////
-	utils::BindTexture2D(GL_TEXTURE0, "res/texture/brickwall/brickwall.jpg");
-	utils::BindTexture2D(GL_TEXTURE1, "res/texture/brickwall/brickwall_normal.jpg");
+	utils::BindTexture2D(GL_TEXTURE0, "res/texture/bricks2/bricks2.jpg");
+	utils::BindTexture2D(GL_TEXTURE1, "res/texture/bricks2/bricks2_normal.jpg");
+	utils::BindTexture2D(GL_TEXTURE2, "res/texture/bricks2/bricks2_disp.jpg");
 
 	//////////////////////////////
-	Shader normalMapShader("res/shader/normal_mapping.vs", "res/shader/normal_mapping.fs");
-	normalMapShader.Use();
-	normalMapShader.SetInt("material.diffuse", 0); // it will do nothing when the variable doesn't exist.
-	normalMapShader.SetInt("material.normal", 1);
+	Shader parallaxMapShader("res/shader/parallax_mapping.vs", "res/shader/parallax_mapping.fs");
+	parallaxMapShader.Use();
+	parallaxMapShader.SetInt("material.diffuse", 0); // it will do nothing when the variable doesn't exist.
+	parallaxMapShader.SetInt("material.normal", 1);
+	parallaxMapShader.SetInt("material.displace", 2);
 
 	//////////////////////////////
 	vec3 lightPosWS(0.5f, 1.0f, 0.3f);
@@ -99,23 +115,24 @@ GLint main() {
 
 		//////////////////////////////
 		mat4 viewMat = camera.GetViewMatrix();
-		normalMapShader.Use();
-		normalMapShader.SetMat4("projection", projection);
-		normalMapShader.SetMat4("view", viewMat);
+		parallaxMapShader.Use();
+		parallaxMapShader.SetMat4("projection", projection);
+		parallaxMapShader.SetMat4("view", viewMat);
 		// render normal-mapped quad
 		model = mat4(1.0f);
 		// rotate the quad to show normal mapping from multiple directions
-		model = rotate(model, radians((float)glfwGetTime() * -10.0f), normalize(vec3(1.0, 0.0, 1.0)));
-		normalMapShader.SetMat4("model", model);
-		normalMapShader.SetVec3("viewPosWS", camera.position);
-		normalMapShader.SetVec3("lightPosWS", lightPosWS);
+		//model = rotate(model, radians((float)glfwGetTime() * -10.0f), normalize(vec3(1.0, 0.0, 1.0)));
+		parallaxMapShader.SetMat4("model", model);
+		parallaxMapShader.SetVec3("viewPosWS", camera.position);
+		parallaxMapShader.SetVec3("lightPosWS", lightPosWS);
+		parallaxMapShader.SetFloat("heightScale", heightScale);
 		utils::RenderQuadNM();
 
 		// render light source (simply re-renders a smaller plane at the light's position for debugging/visualization)
 		model = mat4(1.0f);
 		model = translate(model, lightPosWS);
 		model = scale(model, vec3(0.1f));
-		normalMapShader.SetMat4("model", model);
+		parallaxMapShader.SetMat4("model", model);
 		utils::RenderQuadNM();
 
 		//////////////////////////////

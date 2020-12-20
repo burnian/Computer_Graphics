@@ -134,7 +134,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\glad.c" />
-    <ClCompile Include="src\NormalMapping.cpp" />
+    <ClCompile Include="src\ParallaxMapping.cpp" />
     <ClCompile Include="src\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -163,6 +163,8 @@
     <None Include="res\shader\normalVisualize.vs" />
     <None Include="res\shader\normal_mapping.fs" />
     <None Include="res\shader\normal_mapping.vs" />
+    <None Include="res\shader\parallax_mapping.fs" />
+    <None Include="res\shader\parallax_mapping.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
